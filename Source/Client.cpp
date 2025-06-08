@@ -6487,7 +6487,6 @@ void FOClient::Net_OnPlayersBarterSetHide()
     if( !citem )
     {
         Item item;
-        memzero( &item, sizeof( item ) );
         item.Init( proto_item );
         item.Id = id;
         item.Count_Set( count );
