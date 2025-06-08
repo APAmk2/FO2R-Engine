@@ -5158,6 +5158,10 @@ void FOClient::LMenuMouseUp()
                 SplitStart( cont_item, SLOT_GROUND | ( ( TargetSmth.GetParam() ? 1 : 0 ) << 16 ) );
             else
                 AddActionBack( CHOSEN_MOVE_ITEM, cont_item->GetId(), cont_item->GetCount(), SLOT_GROUND, TargetSmth.GetParam() ? 1 : 0 );
+
+			if (GetActiveScreen() == SCREEN__BARTER && BarterIsPlayers)
+				Net_SendPlayersBarter(BARTER_UNSET_SELF, cont_item->GetId(), cont_item->GetCount());
+
             break;
         case LMENU_NODE_UNLOAD:
             if( !inv_item )
