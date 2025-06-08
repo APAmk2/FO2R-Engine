@@ -29,7 +29,7 @@ bool FOMapper::Init()
     #if defined ( FO_X86 )
     STATIC_ASSERT( sizeof( SpriteInfo ) == 36 );
     STATIC_ASSERT( sizeof( Sprite ) == 120 );
-    STATIC_ASSERT( sizeof( GameOptions ) == 1340 );
+    STATIC_ASSERT( sizeof( GameOptions ) == 1344 );
     #endif
 
     // Register dll script data
@@ -328,7 +328,10 @@ bool FOMapper::Init()
     RefreshCurProtos();
 
     IsMapperStarted = true;
-    WriteLog( "Mapper initialization complete.\n" );
+	LastSaveCall = Timer::FastTick();
+	SaveLogoFade = false;
+	SaveLogoHeight = SprMngr.GetLinesHeight(0, 0, "Saved...", FONT_BIG);
+	WriteLog("Mapper initialization complete.\n");
     return true;
 }
 
@@ -427,6 +430,7 @@ int FOMapper::InitIface()
     IntVectX = 0;
     IntVectY = 0;
     SelectType = SELECT_TYPE_NEW;
+	StrictTilePlasing = false;
 
     SubTabsActive = false;
     SubTabsActiveTab = 0;
@@ -720,7 +724,7 @@ void FOMapper::AnimFree( int res_type )
 void FOMapper::ParseKeyboard()
 {
     // Stop processing if window not active
-    if( !MainWindow->active() )
+    if( !MainWindow->Focused )
     {
         MainWindow->KeyboardEvents.clear();
         MainWindow->KeyboardEventsText.clear();
@@ -893,7 +897,8 @@ void FOMapper::ParseKeyboard()
                 }
                 break;
             case DIK_TAB:
-                SelectType = ( SelectType == SELECT_TYPE_OLD ? SELECT_TYPE_NEW : SELECT_TYPE_OLD );
+				SelectType++;
+				if (SelectType >= SELECT_TYPE_MAX) SelectType = SELECT_TYPE_OLD;
                 break;
             default:
                 break;
@@ -953,6 +958,9 @@ void FOMapper::ParseKeyboard()
             case DIK_NUMPAD4:
                 TileLayer = 4;
                 break;
+			case DIK_S:
+				GameOpt.ScrollCheck = !GameOpt.ScrollCheck;
+				break;
             default:
                 break;
             }
@@ -975,7 +983,7 @@ void FOMapper::ParseKeyboard()
                 SelectAll();
                 break;
             case DIK_S:
-                GameOpt.ScrollCheck = !GameOpt.ScrollCheck;
+				SaveMapFile(HexMngr.CurProtoMap->GetName());
                 break;
             case DIK_B:
                 HexMngr.MarkPassedHexes();
@@ -997,6 +1005,9 @@ void FOMapper::ParseKeyboard()
             case DIK_L:
                 SaveLogFile();
                 break;
+			case DIK_G:
+				StrictTilePlasing = !StrictTilePlasing;
+				break;
             default:
                 break;
             }
@@ -1108,7 +1119,7 @@ void FOMapper::ParseMouse()
     GameOpt.MouseY = CLAMP( GameOpt.MouseY, 0, MODE_HEIGHT - 1 );
 
     // Stop processing if window not active
-    if( !MainWindow->active() )
+    if( !MainWindow->Focused )
     {
         MainWindow->MouseEvents.clear();
         Keyb::Lost();
@@ -1439,6 +1450,11 @@ void FOMapper::MainLoop()
 
     if( HexMngr.IsMapLoaded() )
     {
+		if (GameOpt.MapperAutosave && LastSaveCall + (GameOpt.MapperAutosave * 60000) < Timer::FastTick())
+		{
+			SaveMapFile(HexMngr.CurProtoMap->GetName());
+		}
+
         for( auto it = HexMngr.GetCritters().begin(), end = HexMngr.GetCritters().end(); it != end; ++it )
         {
             CritterCl* cr = ( *it ).second;
@@ -2036,19 +2052,38 @@ void FOMapper::IntDraw()
         SprMngr.DrawStr( Rect( MODE_WIDTH - 100, 0, MODE_WIDTH, MODE_HEIGHT ),
                          Str::FormatBuf(
                              "Map '%s'\n"
-                             "Hex %d %d\n"
                              "Time %u : %u\n"
                              "Fps %u\n"
+							 "Zoom %d\n"
                              "Tile layer %d\n"
                              "%s",
                              HexMngr.CurProtoMap->GetName(),
-                             hex_thru ? hx : -1, hex_thru ? hy : -1,
                              DayTime / 60 % 24, DayTime % 60,
                              GameOpt.FPS,
+							 (int)(1.0f / GameOpt.SpritesZoom * 100.0f),
                              TileLayer,
                              GameOpt.ScrollCheck ? "Scroll check" : "" ),
                          FT_NOBREAK_LINE );
+		
+		SprMngr.DrawStr(Rect(GameOpt.MouseX + 30, GameOpt.MouseY, MODE_WIDTH, MODE_HEIGHT),
+			Str::FormatBuf("%d:%d\n", hex_thru ? hx : -1, hex_thru ? hy : -1), FT_NOBREAK_LINE, COLOR_XRGB(0xF8, 0xF9, 0x93));
     }
+
+	if (SaveLogoFade)
+	{
+		int fading_proc = 100 - Procent(FADING_PERIOD, Timer::FastTick() - LastSaveCall);
+		fading_proc = CLAMP(fading_proc, 0, 100);
+		if (fading_proc <= 0)
+		{
+			SaveLogoFade = false;
+		}
+
+		int alpha = (fading_proc * 0xFF) / 100;
+		if (alpha > 255)
+			alpha = 255;
+
+		SprMngr.DrawStr(Rect(IntX, IntY - SaveLogoHeight, MODE_WIDTH, MODE_HEIGHT), "Saved...", FT_NOBREAK_LINE, COLOR_ARGB(alpha, 0xF8, 0xF9, 0x93), FONT_BIG);
+	}
 }
 
 void FOMapper::ObjDraw()
@@ -2680,6 +2715,13 @@ void FOMapper::IntLMouseDown()
 
         if( !HexMngr.GetHexPixel( GameOpt.MouseX, GameOpt.MouseY, SelectHX1, SelectHY1 ) )
             return;
+		
+		if (IsTileMode() && StrictTilePlasing)
+		{
+			SelectHX1 = SelectHX1 - (SelectHX1 % 2);
+			SelectHY1 = SelectHY1 - (SelectHY1 % 2);
+		}
+
         SelectHX2 = SelectHX1;
         SelectHY2 = SelectHY1;
         SelectX = GameOpt.MouseX;
@@ -2738,6 +2780,7 @@ void FOMapper::IntLMouseDown()
                 ParseTile( ( *CurTileHashes )[ GetTabIndex() ], SelectHX1, SelectHY1, 0, 0, TileLayer, DrawRoof );
             else if( IsCritMode() && CurNpcProtos->size() )
                 ParseNpc( ( *CurNpcProtos )[ GetTabIndex() ]->ProtoId, SelectHX1, SelectHY1 );
+			NextCursorEnabling = Timer::FastTick() + 400;
         }
 
         return;
@@ -2966,6 +3009,7 @@ void FOMapper::IntLMouseDown()
                 if( HexMngr.SetProtoMap( *LoadedProtoMaps[ ind ] ) )
                 {
                     CurProtoMap = LoadedProtoMaps[ ind ];
+					LastSaveCall = Timer::FastTick();
                     HexMngr.FindSetCenter( CurProtoMap->Header.WorkHexX, CurProtoMap->Header.WorkHexY );
                 }
             }
@@ -3170,7 +3214,7 @@ void FOMapper::IntLMouseUp()
                 HexMngr.ClearHexTrack();
                 UShortPairVec h;
 
-                if( SelectType == SELECT_TYPE_OLD )
+				if (SelectType == SELECT_TYPE_OLD || SelectType == SELECT_TYPE_TILES)
                 {
                     int fx = min( SelectHX1, SelectHX2 );
                     int tx = max( SelectHX1, SelectHX2 );
@@ -3281,17 +3325,23 @@ void FOMapper::IntMouseMove()
         {
             if( SelectHX1 != SelectHX2 || SelectHY1 != SelectHY2 )
             {
-                if( SelectType == SELECT_TYPE_OLD )
+				if (SelectType == SELECT_TYPE_OLD || SelectType == SELECT_TYPE_TILES)
                 {
+					HexMngr.SetTileTrack(SelectType == SELECT_TYPE_TILES);
                     int fx = min( SelectHX1, SelectHX2 );
                     int tx = max( SelectHX1, SelectHX2 );
                     int fy = min( SelectHY1, SelectHY2 );
                     int ty = max( SelectHY1, SelectHY2 );
 
                     for( int i = fx; i <= tx; i++ )
-                        for( int j = fy; j <= ty; j++ )
-                            HexMngr.GetHexTrack( i, j ) = 1;
-                }
+					{
+						for (int j = fy; j <= ty; j++)
+						{
+							if (SelectType == SELECT_TYPE_TILES && (i % 2 != 0 || j % 2 != 0)) continue;
+							HexMngr.GetHexTrack(i, j) = 1;
+						}              
+					}
+				}
                 else if( SelectType == SELECT_TYPE_NEW )
                 {
                     UShortPairVec h;
@@ -4219,7 +4269,7 @@ MapObject* FOMapper::ParseProto( ushort pid, ushort hx, ushort hy, MapObject* ow
     {
         SelectAdd( mobj );
         HexMngr.RefreshMap();
-        CurMode = CUR_MODE_DEFAULT;
+        //CurMode = CUR_MODE_DEFAULT;
     }
     else
     {
@@ -4237,7 +4287,7 @@ void FOMapper::ParseTile( uint name_hash, ushort hx, ushort hy, short ox, short 
     SelectClear();
 
     HexMngr.SetTile( name_hash, hx, hy, ox, oy, layer, is_roof, false );
-    CurMode = CUR_MODE_DEFAULT;
+    //CurMode = CUR_MODE_DEFAULT;
 }
 
 void FOMapper::ParseNpc( ushort pid, ushort hx, ushort hy )
@@ -4294,7 +4344,7 @@ void FOMapper::ParseNpc( ushort pid, ushort hx, ushort hy )
     SelectAdd( mobj );
 
     HexMngr.RefreshMap();
-    CurMode = CUR_MODE_DEFAULT;
+    //CurMode = CUR_MODE_DEFAULT;
 }
 
 MapObject* FOMapper::ParseMapObj( MapObject* mobj )
@@ -4466,7 +4516,10 @@ void FOMapper::BufferPaste( int hx, int hy )
 
 void FOMapper::CurDraw()
 {
-    switch( CurMode )
+	int currCurMode = CurMode;
+	if (IsCurInRect(IntWMain, IntX, IntY)) currCurMode = CUR_MODE_DEFAULT;
+
+	switch (currCurMode)
     {
     case CUR_MODE_DEFAULT:
     case CUR_MODE_MOVE_SELECTION:
@@ -4485,6 +4538,7 @@ void FOMapper::CurDraw()
     }
     break;
     case CUR_MODE_PLACE_OBJECT:
+		if (NextCursorEnabling > Timer::FastTick()) break;
         if( IsObjectMode() && ( *CurItemProtos ).size() )
         {
             ProtoItem& proto_item = ( *CurItemProtos )[ GetTabIndex() ];
@@ -4517,6 +4571,12 @@ void FOMapper::CurDraw()
             SpriteInfo* si = SprMngr.GetSpriteInfo( anim->GetCurSprId() );
             if( si )
             {
+				if (StrictTilePlasing)
+				{
+					hx = hx - (hx % 2);
+					hy = hy - (hy % 2);
+				}
+
                 int x = HexMngr.GetField( hx, hy ).ScrX - ( si->Width / 2 ) + si->OffsX;
                 int y = HexMngr.GetField( hx, hy ).ScrY - si->Height + si->OffsY;
                 if( !DrawRoof )
@@ -4815,26 +4875,7 @@ void FOMapper::ParseCommand( const char* cmd )
 
         char map_name[ MAX_FOTEXT ];
         Str::CopyWord( map_name, cmd, ' ', false );
-        if( !map_name[ 0 ] )
-        {
-            AddMess( "Error parse map name." );
-            return;
-        }
-
-        if( !CurProtoMap )
-        {
-            AddMess( "Map not loaded." );
-            return;
-        }
-
-        SelectClear();
-        HexMngr.RefreshMap();
-        FileManager::SetDataPath( GameOpt.ServerPath.c_str() );
-        if( CurProtoMap->Save( map_name, PT_SERVER_MAPS ) )
-            AddMess( "Save map success." );
-        else
-            AddMess( "Save map fail, see log." );
-        FileManager::SetDataPath( ( GameOpt.ClientPath.c_std_str() + GameOpt.FoDataPath.c_std_str() ).c_str() );
+		SaveMapFile(map_name);
     }
     // Run script
     else if( *cmd == '#' )
@@ -5338,6 +5379,33 @@ void FOMapper::DrawIfaceLayer( uint layer )
         Script::RunPrepared();
         SpritesCanDraw = false;
     }
+}
+
+void FOMapper::SaveMapFile(string map_name)
+{
+	if (!map_name[0])
+	{
+		AddMess("Error parse map name.");
+		return;
+	}
+
+	if (!CurProtoMap)
+	{
+		AddMess("Map not loaded.");
+		return;
+	}
+
+	SelectClear();
+	HexMngr.RefreshMap();
+	FileManager::SetDataPath(GameOpt.ServerPath.c_str());
+	if (CurProtoMap->Save(map_name.c_str(), PT_SERVER_MAPS))
+		AddMess("Save map success.");
+	else
+		AddMess("Save map fail, see log.");
+
+	LastSaveCall = Timer::FastTick();
+	SaveLogoFade = true;
+	FileManager::SetDataPath((GameOpt.ClientPath.c_std_str() + GameOpt.FoDataPath.c_std_str()).c_str());
 }
 
 #define SCRIPT_ERROR( error )          do { ScriptLastError = error; Script::LogError( _FUNC_, error ); } while( 0 )

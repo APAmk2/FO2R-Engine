@@ -166,7 +166,7 @@ HexManager::HexManager()
     picRainDropName = "art/misc/rain_drop.fofrm";
     picRainFall = NULL;
     picRainDrop = NULL;
-    picTrack1 = picTrack2 = picHexMask = NULL;
+	picTrack1 = picTrack2 = picHexMask = picTileMask = NULL;
 }
 
 bool HexManager::Init()
@@ -189,6 +189,7 @@ bool HexManager::Init()
     #endif
 
     isShowTrack = false;
+	isTileTrack = false;
     curPidMap = 0;
     curMapTime = -1;
     curHashTiles = 0;
@@ -251,6 +252,7 @@ void HexManager::ReloadSprites()
     cursorXPic = SprMngr.LoadAnimation( ( curDataPrefix + "move_x.png" ).c_str(), PT_DATA, ANIM_USE_DUMMY );
     picTrack1 = SprMngr.LoadAnimation( ( curDataPrefix + "track1.png" ).c_str(), PT_DATA, ANIM_USE_DUMMY );
     picTrack2 = SprMngr.LoadAnimation( ( curDataPrefix + "track2.png" ).c_str(), PT_DATA, ANIM_USE_DUMMY );
+	picTileMask = SprMngr.LoadAnimation((curDataPrefix + "tile_mask.png").c_str(), PT_DATA, ANIM_USE_DUMMY);
 
     // May be null
     picHexMask = SprMngr.LoadAnimation( ( curDataPrefix + "hex_mask.png" ).c_str(), PT_DATA );
@@ -866,10 +868,12 @@ void HexManager::RebuildMap( int rx, int ry )
             // Track
             if( isShowTrack && GetHexTrack( nx, ny ) )
             {
-                uint        spr_id = ( GetHexTrack( nx, ny ) == 1 ? picTrack1->GetCurSprId() : picTrack2->GetCurSprId() );
+				uint        spr_id = (isTileTrack ? picTileMask->GetCurSprId() : (GetHexTrack(nx, ny) == 1 ? picTrack1->GetCurSprId() : picTrack2->GetCurSprId()));
                 SpriteInfo* si = SprMngr.GetSpriteInfo( spr_id );
-                mainTree.AddSprite( DRAW_ORDER_TRACK, nx, ny, 0, f.ScrX + HEX_OX, f.ScrY + HEX_OY + ( si ? si->Height / 2 : 0 ), spr_id,
-                                    NULL, NULL, NULL, NULL, NULL, NULL );
+				if (isTileTrack)
+					mainTree.AddSprite(DRAW_ORDER_TRACK, nx, ny, 0, f.ScrX + TILE_OX, f.ScrY + TILE_OY, spr_id, NULL, NULL, NULL, NULL, NULL, NULL);
+				else
+					mainTree.AddSprite(DRAW_ORDER_TRACK, nx, ny, 0, f.ScrX + HEX_OX, f.ScrY + HEX_OY + (si ? si->Height / 2 : 0), spr_id, NULL, NULL, NULL, NULL, NULL, NULL);
             }
 
             // Hex Lines
@@ -1768,6 +1772,12 @@ void HexManager::SwitchShowTrack()
     RefreshMap();
 }
 
+void HexManager::SetTileTrack(bool val)
+{
+	isTileTrack = val;
+	RefreshMap();
+}
+
 void HexManager::InitView( int cx, int cy )
 {
     if( GameOpt.MapHexagonal )
@@ -1959,6 +1969,10 @@ void HexManager::DrawMap()
     SprMngr.ClearCurrentRenderTarget( 0 );
     #endif
 
+	#ifdef FO_D3D
+		Device_ device = SprMngr.GetDevice();
+	#endif
+
     // Rebuild light
     if( requestRebuildLight )
     {
@@ -1969,16 +1983,7 @@ void HexManager::DrawMap()
     // Tiles
     if( GameOpt.ShowTile )
     {
-        #ifdef FO_D3D
-        Device_ device = SprMngr.GetDevice();
-        device->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
-        device->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
-        #endif
         SprMngr.DrawSprites( tilesTree, false, false, DRAW_ORDER_TILE, DRAW_ORDER_TILE_END );
-        #ifdef FO_D3D
-        device->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-        device->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-        #endif
     }
 
     // Flat sprites
@@ -1998,16 +2003,7 @@ void HexManager::DrawMap()
     // Roof
     if( GameOpt.ShowRoof )
     {
-        #ifdef FO_D3D
-        Device_ device = SprMngr.GetDevice();
-        device->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
-        device->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
-        #endif
         SprMngr.DrawSprites( roofTree, false, true, 0, 0 );
-        #ifdef FO_D3D
-        device->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-        device->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-        #endif
 
         if( rainCapacity )
             SprMngr.DrawSprites( roofRainTree, false, false, 0, 0 );
@@ -4465,6 +4461,7 @@ void HexManager::GetHexesRect( const Rect& rect, UShortPairVec& hexes )
 
 void HexManager::MarkPassedHexes()
 {
+	SetTileTrack(false);
     for( int hx = 0; hx < maxHexX; hx++ )
     {
         for( int hy = 0; hy < maxHexY; hy++ )

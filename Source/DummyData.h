@@ -1441,4 +1441,6 @@ struct GameOptions
     int ShowSpriteCuts;
     int ShowDrawOrder;
     int SplitTilesCollection;
+	
+	int MapperAutosave;
 } GameOpt;

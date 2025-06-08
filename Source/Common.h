@@ -745,6 +745,8 @@ struct GameOptions
     uint         ( * GetAttackDistantion )( void*, void*, uchar );
     void         ( * GetRainOffset )( short*, short* );
 
+	int			 MapperAutosave;
+
     GameOptions();
 } extern GameOpt;
 

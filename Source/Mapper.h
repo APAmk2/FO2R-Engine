@@ -162,9 +162,15 @@ public:
     ushort     SelectHX1, SelectHY1, SelectHX2, SelectHY2;
     int        SelectX, SelectY;
 
-    #define SELECT_TYPE_OLD            ( 0 )
-    #define SELECT_TYPE_NEW            ( 1 )
+	enum SelectTypes {
+		SELECT_TYPE_OLD = 0,
+		SELECT_TYPE_NEW,
+		SELECT_TYPE_TILES,
+		SELECT_TYPE_MAX
+	};
+
     int  SelectType;
+	bool StrictTilePlasing;
 
     bool IntVisible, IntFix;
 
@@ -370,6 +376,11 @@ public:
     uint   ConsoleKeyTick;
     int    ConsoleAccelerate;
 
+	uint LastSaveCall;
+	uint NextCursorEnabling;
+	bool SaveLogoFade;
+	int  SaveLogoHeight;
+
     void ConsoleDraw();
     void ConsoleKeyDown( uchar dik, const char* dik_text );
     void ConsoleKeyUp( uchar dik );
@@ -425,6 +436,7 @@ public:
     void FinishScriptSystem();
     void RunStartScript();
     void DrawIfaceLayer( uint layer );
+	void SaveMapFile(string map_name);
 
     struct SScriptFunc
     {
