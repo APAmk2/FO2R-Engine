@@ -2101,7 +2101,7 @@ void FOClient::ConsoleDraw()
         SprMngr.DrawStr( Rect( 10, 10, MODE_WIDTH, MODE_HEIGHT ), Str::FormatBuf(
                              "|0xFFBBBBBB FOnline %s\n"
                              "by Gamers for Gamers\n"
-                             "version %04X-%02X beta\n\n"
+                             "version %04X beta\n\n"
                              "Traffic, bytes:\n"
                              "Send: %u\n"
                              "Receive: %u\n"
@@ -2115,7 +2115,7 @@ void FOClient::ConsoleDraw()
                              "Sound: %d\n"
                              "Music: %d\n",
                              Singleplayer ? "Singleplayer" : "",
-                             CLIENT_VERSION, FO_PROTOCOL_VERSION & 0xFF,
+                             CLIENT_VERSION,
                              BytesSend, BytesReceive, BytesReceive + BytesSend, /*BytesRealReceive,*/
                              GameOpt.FPS, !GameOpt.VSync ? abs( GameOpt.FixedFPS ) : 0, !GameOpt.VSync && GameOpt.FixedFPS < 0 ? ", sleep" : "",
                              GameOpt.Ping, SndMngr.GetSoundVolume(), SndMngr.GetMusicVolume()
