@@ -1835,10 +1835,13 @@ void FOClient::InvLMouseUp()
 		{
 			if(from_slot != SLOT_INV)
 				to_slot = SLOT_INV;
-			else if(from_slot == SLOT_INV && item->Proto->Slot == SLOT_INV)
-				to_slot = SLOT_HAND1;
-			else if(from_slot == SLOT_INV && item->Proto->Slot != SLOT_INV)
-				to_slot = item->Proto->Slot;
+			else if (from_slot == SLOT_INV)
+			{
+				if (item->Proto->Type == ITEM_TYPE_ARMOR) to_slot = SLOT_ARMOR;
+				else if (item->Proto->Type == ITEM_TYPE_WEAPON) to_slot = SLOT_HAND1;
+				else if (item->Proto->Slot == SLOT_INV) to_slot = SLOT_HAND2;
+				else if (from_slot == SLOT_INV && item->Proto->Slot != SLOT_INV) to_slot = item->Proto->Slot;
+			}
 		}
 
 		if (item && Keyb::CtrlDwn)
