@@ -189,6 +189,8 @@ int FOClient::InitIface()
     InvItemInfo = "";
     InvItemInfoScroll = 0;
     InvItemInfoMaxScroll = 0;
+	InvColumns = IfaceIni.GetInt("InvColumns", 2);
+	InvItemPadX = IfaceIni.GetInt("InvItemPadX", 10);
 
     // Use
     IfaceLoadRect( UseWMain, "UseMain" );
@@ -683,10 +685,15 @@ int FOClient::InitIface()
     IfaceLoadRect( PupBScrDw2, "PupScrDw2" );
     IfaceLoadRect( PupBNextCritLeft, "PupNextCritLeft" );
     IfaceLoadRect( PupBNextCritRight, "PupNextCritRight" );
+	IfaceLoadRect( PupContName, "PupContName" );
     PupX = ( MODE_WIDTH - PupWMain.W() ) / 2;
     PupY = ( MODE_HEIGHT - PupWMain.H() ) / 2;
     PupHeightItem1 = IfaceIni.GetInt( "PupHeightCont1", 0 );
     PupHeightItem2 = IfaceIni.GetInt( "PupHeightCont2", 0 );
+	PupColumns1 = IfaceIni.GetInt( "PupColumns1", 2 );
+	PupColumns2 = IfaceIni.GetInt( "PupColumns2", 2 );
+	PupItemPadX1 = IfaceIni.GetInt( "PupItemPadX1", 10 );
+	PupItemPadX2 = IfaceIni.GetInt( "PupItemPadX2", 10 );
     PupHoldId = 0;
     PupScroll1 = 0;
     PupScroll2 = 0;
@@ -1373,54 +1380,74 @@ void FOClient::DrawIndicator( Rect& rect, PointVec& points, uint color, int proc
         SprMngr.DrawPoints( points, PRIMITIVE_POINTLIST );
 }
 
-uint FOClient::GetCurContainerItemId( const Rect& pos, int height, int scroll, ItemVec& cont )
+uint FOClient::GetCurContainerItemId(const Rect& pos, int height, int scroll, ItemVec& cont, int column = 1, int padX = 0)
 {
     if( !IsCurInRect( pos ) )
         return 0;
     auto it = cont.begin();
-    int  pos_cur = ( GameOpt.MouseY - pos.T ) / height;
+	int itemWidth = (pos.W() - (padX * (column - 1))) / column;
+
+	int  pos_cur = (((GameOpt.MouseY - pos.T) / height) * column) + (column != 1 ? scroll : 0) + ((GameOpt.MouseX - pos.L) / (itemWidth + padX));
     for( int i = 0; it != cont.end(); ++it, ++i )
     {
-        if( i - scroll != pos_cur )
-            continue;
+        if (i - scroll != pos_cur)
+			continue;
         return ( *it ).GetId();
     }
     return 0;
 }
 
-void FOClient::ContainerDraw( const Rect& pos, int height, int scroll, ItemVec& cont, uint skip_id )
+void FOClient::ContainerDraw( const Rect& pos, int height, int scroll, ItemVec& cont, uint skip_id, int column = 1, int padX = 0)
 {
-    int i = 0, i2 = 0;
+	int col = 0, row = 0;
     for( auto it = cont.begin(), end = cont.end(); it != end; ++it )
     {
         Item& item = *it;
-        if( item.GetId() == skip_id )
-            continue;
-        if( i >= scroll && i < scroll + pos.H() / height )
+        if (item.GetId() == skip_id)
+			continue;
+        if(row >= scroll && row < scroll + pos.H() / height)
         {
             AnyFrames* anim = ResMngr.GetInvAnim( item.GetPicInv() );
             if( anim )
-                SprMngr.DrawSpriteSize( anim->GetCurSprId(), pos.L, pos.T + ( i2 * height ), (float) pos.W(), (float) height, false, true, item.GetInvColor() );
-            i2++;
+			{
+				int itemWidth = (pos.W() - (padX * (column - 1))) / column;
+				int x = pos.L + (col * (itemWidth + padX));
+				int y = pos.T + (row * height) - (scroll * height);
+
+                SprMngr.DrawSpriteSize( anim->GetCurSprId(), x, y, (float) itemWidth, (float) height, false, true, item.GetInvColor() );
+			}
         }
-        i++;
+        if (++col >= column)
+		{
+			col = 0;
+			row++;
+		}
     }
 
     SprMngr.Flush();
 
-    i = 0, i2 = 0;
+	col = 0, row = 0;
     for( auto it = cont.begin(), end = cont.end(); it != end; ++it )
     {
         Item& item = *it;
-        if( item.GetId() == skip_id )
-            continue;
-        if( i >= scroll && i < scroll + pos.H() / height )
+        if (item.GetId() == skip_id)
+			continue;
+        if(row >= scroll && row < scroll + pos.H() / height)
         {
             if( item.GetCount() > 1 )
-                SprMngr.DrawStr( Rect( pos.L, pos.T + ( i2 * height ), pos.R, pos.T + ( i2 * height ) + height ), Str::FormatBuf( "x%u", item.GetCount() ), 0, COLOR_TEXT_WHITE );
-            i2++;
-        }
-        i++;
+            {
+				int itemWidth = (pos.W() - (padX * (column - 1))) / column;
+				int x = pos.L + (col * (itemWidth + padX));
+				int y = pos.T + (row * height) - (scroll * height);
+
+                SprMngr.DrawStr( Rect( x, y, pos.R, pos.T + (row * height ) - (scroll * height) + height ), Str::FormatBuf( "x%u", item.GetCount() ), 0, COLOR_TEXT_WHITE );
+			}
+		}
+        if (++col >= column)
+		{
+			col = 0;
+			row++;
+		}
     }
 }
 
@@ -1562,7 +1589,7 @@ void FOClient::InvDraw()
     }
 
     // Scroll down
-    if( InvScroll >= (int) InvCont.size() - ( InvWInv[ 3 ] - InvWInv[ 1 ] ) / InvHeightItem )
+    if( InvScroll >= (int) (InvCont.size() - ( InvWInv[ 3 ] - InvWInv[ 1 ] ) / InvHeightItem) / InvColumns)
         SprMngr.DrawSprite( InvPBScrDwOff, InvBScrDn[ 0 ] + InvX, InvBScrDn[ 1 ] + InvY );
     else
     {
@@ -1624,7 +1651,7 @@ void FOClient::InvDraw()
     uint skip_id = 0;
     if( IsCurMode( CUR_HAND ) && IfaceHold == IFACE_INV_INV && InvHoldId )
         skip_id = InvHoldId;
-    ContainerDraw( Rect( InvWInv, InvX, InvY ), InvHeightItem, InvScroll, InvCont, skip_id );
+    ContainerDraw( Rect( InvWInv, InvX, InvY ), InvHeightItem, InvScroll, InvCont, skip_id, InvColumns, InvItemPadX);
 
     if( InvItemInfo.empty() )
     {
@@ -1658,15 +1685,15 @@ void FOClient::InvLMouseDown()
     if( !Chosen )
         return;
 
-    if( IsCurInRect( InvWMain, InvX, InvY ) )
+    if( IsCurInRect( InvWMain, InvX, InvY ) || IsCurInRect(IntBItem, 0, 0) )
     {
         if( IsCurInRect( InvWInv, InvX, InvY ) )
         {
-            InvHoldId = GetCurContainerItemId( Rect( InvWInv, InvX, InvY ), InvHeightItem, InvScroll, InvCont );
+            InvHoldId = GetCurContainerItemId( Rect( InvWInv, InvX, InvY ), InvHeightItem, InvScroll, InvCont, InvColumns, InvItemPadX);
             if( InvHoldId )
                 IfaceHold = IFACE_INV_INV;
         }
-        else if( IsCurInRect( InvWSlot1, InvX, InvY ) && Chosen->ItemSlotMain->GetId() )
+        else if( ( IsCurInRect( InvWSlot1, InvX, InvY ) || IsCurInRect(IntBItem, 0, 0) ) && Chosen->ItemSlotMain->GetId() )
         {
             InvHoldId = Chosen->ItemSlotMain->GetId();
             IfaceHold = IFACE_INV_SLOT1;
@@ -1732,13 +1759,13 @@ void FOClient::InvLMouseUp()
 {
     if( !Chosen )
         return;
-    if( IsCurMode( CUR_HAND ) && ( IfaceHold == IFACE_INV_INV || IfaceHold == IFACE_INV_SLOT1 || IfaceHold == IFACE_INV_SLOT2 || IfaceHold == IFACE_INV_ARMOR || IfaceHold == IFACE_INV_SLOTS_EXT ) )
+    if( (IsCurMode( CUR_HAND ) || Keyb::ShiftDwn || Keyb::CtrlDwn || Keyb::AltDwn) && ( IfaceHold == IFACE_INV_INV || IfaceHold == IFACE_INV_SLOT1 || IfaceHold == IFACE_INV_SLOT2 || IfaceHold == IFACE_INV_ARMOR || IfaceHold == IFACE_INV_SLOTS_EXT ) )
     {
         int   to_slot = -1;
         Item* to_weap = NULL;
         if( IsCurInRect( InvWInv, InvX, InvY ) )
             to_slot = SLOT_INV;
-        else if( IsCurInRect( InvWSlot1, InvX, InvY ) )
+        else if( IsCurInRect( InvWSlot1, InvX, InvY ) || IsCurInRect(IntBItem, 0, 0) )
         {
             to_slot = SLOT_HAND1;
             if( Chosen->ItemSlotMain->GetId() )
@@ -1775,6 +1802,8 @@ void FOClient::InvLMouseUp()
             return;
         }
 
+		Item* item = Chosen->GetItem(InvHoldId);
+
         if( to_weap && !to_weap->IsWeapon() )
             to_weap = NULL;
 
@@ -1795,7 +1824,6 @@ void FOClient::InvLMouseUp()
             break;
         default:         // IFACE_INV_SLOTS_EXT:
         {
-            Item* item = Chosen->GetItem( InvHoldId );
             if( item )
                 from_slot = item->AccCritter.Slot;
         }
@@ -1803,10 +1831,31 @@ void FOClient::InvLMouseUp()
         }
         IfaceHold = IFACE_NONE;
 
-        if( from_slot == -1 || from_slot == to_slot )
-            return;
+        if (item && Keyb::ShiftDwn)
+		{
+			if(from_slot != SLOT_INV)
+				to_slot = SLOT_INV;
+			else if(from_slot == SLOT_INV && item->Proto->Slot == SLOT_INV)
+				to_slot = SLOT_HAND1;
+			else if(from_slot == SLOT_INV && item->Proto->Slot != SLOT_INV)
+				to_slot = item->Proto->Slot;
+		}
 
-        Item* item = Chosen->GetItem( InvHoldId );
+		if (item && Keyb::CtrlDwn)
+		{
+			AddActionBack(CHOSEN_MOVE_ITEM, item->GetId(), item->GetCount(), SLOT_GROUND, 0);
+			return;
+		}
+
+		if (item && Keyb::AltDwn)
+		{
+			SetAction(CHOSEN_USE_ITEM, item->GetId(), 0, TARGET_SELF, 0, USE_USE);
+			return;
+		}
+
+		if (from_slot == -1 || from_slot == to_slot)
+			return;
+
         InvHoldId = 0;
         if( !item || item->AccCritter.Slot != from_slot )
             return;
@@ -1842,7 +1891,7 @@ void FOClient::InvLMouseUp()
     }
     else if( IfaceHold == IFACE_INV_SCRDW && IsCurInRect( InvBScrDn, InvX, InvY ) )
     {
-        if( InvScroll < (int) InvCont.size() - InvWInv.H() / InvHeightItem )
+        if( InvScroll < (int) (InvCont.size() - InvWInv.H() / InvHeightItem) / InvColumns)
             InvScroll++;
     }
     else if( IfaceHold == IFACE_INV_OK && IsCurInRect( InvBOk, InvX, InvY ) )
@@ -4566,7 +4615,7 @@ void FOClient::LMenuCollect()
         {
             if( !Chosen )
                 break;
-            uint item_id = GetCurContainerItemId( Rect( InvWInv, InvX, InvY ), InvHeightItem, InvScroll, InvCont );
+            uint item_id = GetCurContainerItemId( Rect( InvWInv, InvX, InvY ), InvHeightItem, InvScroll, InvCont, InvColumns);
             if( !item_id && IsCurInRect( InvWSlot1, InvX, InvY ) )
                 item_id = Chosen->ItemSlotMain->GetId();
             if( !item_id && IsCurInRect( InvWSlot2, InvX, InvY ) )
@@ -4619,9 +4668,9 @@ void FOClient::LMenuCollect()
         break;
         case SCREEN__PICKUP:
         {
-            uint item_id = GetCurContainerItemId( Rect( PupWCont1, PupX, PupY ), PupHeightItem1, PupScroll1, PupCont1 );
+            uint item_id = GetCurContainerItemId( Rect( PupWCont1, PupX, PupY ), PupHeightItem1, PupScroll1, PupCont1, PupColumns1, PupItemPadX1 );
             if( !item_id )
-                item_id = GetCurContainerItemId( Rect( PupWCont2, PupX, PupY ), PupHeightItem2, PupScroll2, PupCont2 );
+                item_id = GetCurContainerItemId( Rect( PupWCont2, PupX, PupY ), PupHeightItem2, PupScroll2, PupCont2, PupColumns2, PupItemPadX2 );
             if( !item_id )
                 break;
 
@@ -4827,6 +4876,7 @@ void FOClient::LMenuSet( uchar set_lmenu )
         }
         else
         {
+			LMenuNodes.push_back(LMENU_NODE_DROP);
             // Items in another containers
         }
 
@@ -5154,6 +5204,12 @@ void FOClient::LMenuMouseUp()
                 break;
             if( !Chosen->IsLife() || !Chosen->IsFree() )
                 break;
+			if (GetActiveScreen() == SCREEN__PICKUP && !Chosen->GetItem(cont_item->GetId()))
+			{
+				SetAction(CHOSEN_MOVE_ITEM_CONT, cont_item->GetId(), IFACE_PUP_CONT2, cont_item->GetCount());
+				AddActionBack(CHOSEN_MOVE_ITEM, cont_item->GetId(), cont_item->GetCount(), SLOT_GROUND, TargetSmth.GetParam() ? 1 : 0);
+				break;
+			}
             if( cont_item->IsStackable() && cont_item->GetCount() > 1 )
                 SplitStart( cont_item, SLOT_GROUND | ( ( TargetSmth.GetParam() ? 1 : 0 ) << 16 ) );
             else
@@ -9152,13 +9208,17 @@ void FOClient::PupDraw()
             AnyFrames* anim = ResMngr.GetItemAnim( proto_item->PicMap, proto_item->Dir );
             if( anim )
                 SprMngr.DrawSpriteSize( anim->GetSprId( anim->GetCnt() - 1 ), PupWInfo[ 0 ] + PupX, PupWInfo[ 1 ] + PupY, (float) PupWInfo.W(), (float) PupWInfo.H(), false, true );
+			SprMngr.DrawStr( Rect(PupContName, PupX, PupY), MsgItem->GetStr(PupContPid * 100), FT_CENTERX | FT_CENTERY | FT_NOBREAK, COLOR_TEXT_GREEN );
         }
     }
     else if( PupTransferType == TRANSFER_CRIT_STEAL || PupTransferType == TRANSFER_CRIT_LOOT || PupTransferType == TRANSFER_FAR_CRIT )
     {
         CritterCl* cr = HexMngr.GetCritter( PupContId );
-        if( cr )
-            cr->DrawStay( Rect( PupWInfo, PupX, PupY ) );
+		if (cr)
+		{
+			cr->DrawStay(Rect(PupWInfo, PupX, PupY));
+			SprMngr.DrawStr(Rect(PupContName, PupX, PupY), MsgDlg->GetStr(STR_NPC_PROTO_NAME_(cr->Pid)), FT_CENTERX | FT_CENTERY | FT_NOBREAK, COLOR_TEXT_GREEN);
+		}
     }
 
     // Button Ok
@@ -9208,8 +9268,8 @@ void FOClient::PupDraw()
     }
 
     // Items
-    ContainerDraw( Rect( PupWCont1, PupX, PupY ), PupHeightItem1, PupScroll1, PupCont1, IfaceHold == IFACE_PUP_CONT1 ? PupHoldId : 0 );
-    ContainerDraw( Rect( PupWCont2, PupX, PupY ), PupHeightItem2, PupScroll2, PupCont2, IfaceHold == IFACE_PUP_CONT2 ? PupHoldId : 0 );
+	ContainerDraw(Rect(PupWCont1, PupX, PupY), PupHeightItem1, PupScroll1, PupCont1, IfaceHold == IFACE_PUP_CONT1 ? PupHoldId : 0, PupColumns1, PupItemPadX1);
+	ContainerDraw(Rect(PupWCont2, PupX, PupY), PupHeightItem2, PupScroll2, PupCont2, IfaceHold == IFACE_PUP_CONT2 ? PupHoldId : 0, PupColumns2, PupItemPadX2);
 }
 
 void FOClient::PupLMouseDown()
@@ -9221,13 +9281,13 @@ void FOClient::PupLMouseDown()
 
     if( IsCurInRect( PupWCont1, PupX, PupY ) )
     {
-        PupHoldId = GetCurContainerItemId( Rect( PupWCont1, PupX, PupY ), PupHeightItem1, PupScroll1, PupCont1 );
+        PupHoldId = GetCurContainerItemId( Rect( PupWCont1, PupX, PupY ), PupHeightItem1, PupScroll1, PupCont1, PupColumns1, PupItemPadX1 );
         if( PupHoldId )
             IfaceHold = IFACE_PUP_CONT1;
     }
     else if( IsCurInRect( PupWCont2, PupX, PupY ) )
     {
-        PupHoldId = GetCurContainerItemId( Rect( PupWCont2, PupX, PupY ), PupHeightItem2, PupScroll2, PupCont2 );
+        PupHoldId = GetCurContainerItemId( Rect( PupWCont2, PupX, PupY ), PupHeightItem2, PupScroll2, PupCont2, PupColumns2, PupItemPadX2 );
         if( PupHoldId )
             IfaceHold = IFACE_PUP_CONT2;
     }
@@ -9272,7 +9332,7 @@ void FOClient::PupLMouseDown()
         IfaceHold = IFACE_PUP_MAIN;
     }
 
-    if( IsCurMode( CUR_DEFAULT ) && ( IfaceHold == IFACE_PUP_CONT1 || IfaceHold == IFACE_PUP_CONT2 ) )
+    if( IsCurMode( CUR_DEFAULT ) && ( IfaceHold == IFACE_PUP_CONT1 || IfaceHold == IFACE_PUP_CONT2 ) && !Keyb::ShiftDwn && !Keyb::CtrlDwn)
     {
         IfaceHold = IFACE_NONE;
         LMenuTryActivate();
@@ -9288,33 +9348,38 @@ void FOClient::PupLMouseUp()
     {
     case IFACE_PUP_CONT2:
     {
-        if( !IsCurInRect( PupWCont1, PupX, PupY ) )
+        if( !IsCurInRect( PupWCont1, PupX, PupY ) && !Keyb::ShiftDwn && !Keyb::CtrlDwn )
             break;
 
         auto it = std::find( PupCont2.begin(), PupCont2.end(), PupHoldId );
         if( it != PupCont2.end() )
         {
             Item& item = *it;
-            if( item.GetCount() > 1 )
+            if( item.GetCount() > 1 && !Keyb::ShiftDwn && !Keyb::CtrlDwn )
                 SplitStart( &item, IFACE_PUP_CONT2 );
-            else
-                SetAction( CHOSEN_MOVE_ITEM_CONT, PupHoldId, IFACE_PUP_CONT2, 1 );
+            else if(!Keyb::CtrlDwn)
+                SetAction( CHOSEN_MOVE_ITEM_CONT, PupHoldId, IFACE_PUP_CONT2, item.GetCount() );
+			else
+			{
+				SetAction( CHOSEN_MOVE_ITEM_CONT, PupHoldId, IFACE_PUP_CONT2, item.GetCount() );
+				AddActionBack(CHOSEN_MOVE_ITEM, PupHoldId, item.GetCount(), SLOT_GROUND, 0);
+			}
         }
     }
     break;
     case IFACE_PUP_CONT1:
     {
-        if( !IsCurInRect( PupWCont2, PupX, PupY ) )
+        if( !IsCurInRect( PupWCont2, PupX, PupY ) && !Keyb::ShiftDwn)
             break;
 
         auto it = std::find( PupCont1.begin(), PupCont1.end(), PupHoldId );
         if( it != PupCont1.end() )
         {
             Item& item = *it;
-            if( item.GetCount() > 1 )
+            if( item.GetCount() > 1 && !Keyb::ShiftDwn )
                 SplitStart( &item, IFACE_PUP_CONT1 );
             else
-                SetAction( CHOSEN_MOVE_ITEM_CONT, PupHoldId, IFACE_PUP_CONT1, 1 );
+                SetAction( CHOSEN_MOVE_ITEM_CONT, PupHoldId, IFACE_PUP_CONT1, item.GetCount() );
         }
     }
     break;

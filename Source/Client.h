@@ -691,8 +691,8 @@ public:
     ItemVec BarterCont1o, BarterCont2, BarterCont2o;
     ItemVec PupCont2;
 
-    uint  GetCurContainerItemId( const Rect& pos, int height, int scroll, ItemVec& cont );
-    void  ContainerDraw( const Rect& pos, int height, int scroll, ItemVec& cont, uint skip_id );
+    uint  GetCurContainerItemId( const Rect& pos, int height, int scroll, ItemVec& cont, int column, int padX);
+    void  ContainerDraw( const Rect& pos, int height, int scroll, ItemVec& cont, uint skip_id, int column, int padX);
     Item* GetContainerItem( ItemVec& cont, uint id );
     void  CollectContItems();
     void  ProcessItemsCollection( int collection, ItemVec& init_items, ItemVec& result );
@@ -736,6 +736,8 @@ public:
     Rect       InvBScrUp, InvBScrDn, InvBOk;
     Rect       InvWText;
     int        InvVectX, InvVectY;
+	int        InvColumns;
+	int        InvItemPadX;
     // Extended slots
     struct SlotExt
     {
@@ -1364,7 +1366,7 @@ public:
     int    PupX, PupY;
     int    PupVectX, PupVectY;
     Rect   PupWMain, PupWInfo, PupWCont1, PupWCont2, PupBTakeAll, PupBOk,
-           PupBScrUp1, PupBScrDw1, PupBScrUp2, PupBScrDw2, PupBNextCritLeft, PupBNextCritRight;
+           PupBScrUp1, PupBScrDw1, PupBScrUp2, PupBScrDw2, PupBNextCritLeft, PupBNextCritRight, PupContName;
     int    PupHeightItem1, PupHeightItem2;
     uchar  PupTransferType;
     uint   PupContId, PupClosedContId, PupLastPutId;
@@ -1372,6 +1374,8 @@ public:
     uint   PupCount;
     ushort PupSize;
     uint   PupWeight;
+	int    PupColumns1, PupColumns2;
+	int    PupItemPadX1, PupItemPadX2;
 
     void       PupDraw();
     void       PupMouseMove();
