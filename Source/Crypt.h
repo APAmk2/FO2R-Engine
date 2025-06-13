@@ -51,6 +51,7 @@ public:
     bool   SetCacheTable( const char* cache_fname );
     void   SetCache( const char* data_name, const uchar* data, uint data_len );
     uchar* GetCache( const char* data_name, uint& data_len );
+	//void	UnpackAllCache();
 };
 
 extern CryptManager Crypt;

@@ -546,3 +546,54 @@ uchar* CryptManager::GetCache( const char* data_name, uint& data_len )
     }
     return NULL;
 }
+
+/*void CryptManager::UnpackAllCache()
+{
+	// Foeach descriptors
+	for (int i = 0; i < MAX_CACHE_DESCRIPTORS; i++)
+	{
+		CacheDescriptor& desc = CacheTable[i];
+		if (!FLAG(desc.Flags, CACHE_DATA_VALID))
+			continue;
+
+		FILE* f = fopen(CacheTableName.c_str(), "rb");
+		if (!f)
+			return;
+
+		if (desc.DataCurLen > 0xFFFFFF)
+		{
+			fclose(f);
+			UNSETFLAG(desc.Flags, CACHE_DATA_VALID);
+			UNSETFLAG(desc.Flags, CACHE_SIZE_VALID);
+			return;
+		}
+
+		fseek(f, 0, SEEK_END);
+		uint file_len = ftell(f) + 1;
+		fseek(f, 0, SEEK_SET);
+
+		if (file_len < sizeof(CacheTable) + desc.DataOffset + desc.DataCurLen)
+		{
+			fclose(f);
+			UNSETFLAG(desc.Flags, CACHE_DATA_VALID);
+			UNSETFLAG(desc.Flags, CACHE_SIZE_VALID);
+			return;
+		}
+
+		uchar* data = new uchar[desc.DataCurLen];
+		if (!data)
+		{
+			fclose(f);
+			return;
+		}
+
+		uint data_len = desc.DataCurLen;
+		fseek(f, sizeof(CacheTable) + desc.DataOffset, SEEK_SET);
+		fread(data, sizeof(uchar), desc.DataCurLen, f);
+		fclose(f);
+
+		FILE* out = fopen(desc.DataName, "wb");
+		fwrite(data, sizeof(uchar), data_len, out);
+		fclose(out);
+	}
+}*/

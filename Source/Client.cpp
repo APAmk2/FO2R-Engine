@@ -1091,6 +1091,7 @@ void FOClient::ParseKeyboard()
     {
         MainWindow->KeyboardEvents.clear();
         MainWindow->KeyboardEventsText.clear();
+		DropScroll();
         Keyb::Lost();
         Timer::StartAccelerator( ACCELERATE_NONE );
         if( Script::PrepareContext( ClientFunctions.InputLost, _FUNC_, "Game" ) )
