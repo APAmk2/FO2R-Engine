@@ -1831,7 +1831,7 @@ void FOClient::InvLMouseUp()
         }
         IfaceHold = IFACE_NONE;
 
-        if (item && Keyb::ShiftDwn)
+        if (item && Keyb::CtrlDwn)
 		{
 			if(from_slot != SLOT_INV)
 				to_slot = SLOT_INV;
@@ -1844,7 +1844,7 @@ void FOClient::InvLMouseUp()
 			}
 		}
 
-		if (item && Keyb::CtrlDwn)
+		if (item && Keyb::ShiftDwn)
 		{
 			AddActionBack(CHOSEN_MOVE_ITEM, item->GetId(), item->GetCount(), SLOT_GROUND, 0);
 			return;
@@ -9360,7 +9360,7 @@ void FOClient::PupLMouseUp()
             Item& item = *it;
             if( item.GetCount() > 1 && !Keyb::ShiftDwn && !Keyb::CtrlDwn )
                 SplitStart( &item, IFACE_PUP_CONT2 );
-            else if(!Keyb::CtrlDwn)
+            else if(!Keyb::ShiftDwn)
                 SetAction( CHOSEN_MOVE_ITEM_CONT, PupHoldId, IFACE_PUP_CONT2, item.GetCount() );
 			else
 			{
@@ -9372,14 +9372,14 @@ void FOClient::PupLMouseUp()
     break;
     case IFACE_PUP_CONT1:
     {
-        if( !IsCurInRect( PupWCont2, PupX, PupY ) && !Keyb::ShiftDwn)
+        if( !IsCurInRect( PupWCont2, PupX, PupY ) && !Keyb::CtrlDwn)
             break;
 
         auto it = std::find( PupCont1.begin(), PupCont1.end(), PupHoldId );
         if( it != PupCont1.end() )
         {
             Item& item = *it;
-            if( item.GetCount() > 1 && !Keyb::ShiftDwn )
+            if( item.GetCount() > 1 && !Keyb::CtrlDwn )
                 SplitStart( &item, IFACE_PUP_CONT1 );
             else
                 SetAction( CHOSEN_MOVE_ITEM_CONT, PupHoldId, IFACE_PUP_CONT1, item.GetCount() );
