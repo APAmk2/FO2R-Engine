@@ -1344,6 +1344,13 @@ GameOptions::GameOptions()
     IndicatorType = INDICATOR_LINES;
     DoubleClickTime = 0;
     RoofAlpha = 200;
+	WallAlpha = 255;
+	ShowContourContainer = false;
+	ShowContourItems = false;
+	ShowContourDoors = false;
+	ShowContourDeadCritters = false;
+	ShowContourScenery = false;
+	ShowContourWalls = false;
     HideCursor = false;
     DisableLMenu = false;
     DisableMouseEvents = false;
@@ -1726,7 +1733,7 @@ FOWindow::FOWindow(): Fl_Window( 0, 0, "" ), Focused( true )
 
     // Hide cursor
     # ifdef FO_WINDOWS
-	MainWindow->cursor(FL_CURSOR_NONE, FL_BLACK);
+	ShowCursor(FALSE);
     # else
     char   data[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
     XColor black;

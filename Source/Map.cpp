@@ -283,7 +283,7 @@ bool Map::Generate()
             item->Data.TrapValue = mobj.MItem.TrapValue;
 
         // Other values
-        item->Data.Dir = mobj.Dir;
+        item->Data.Dir = (uchar)mobj.Dir;
         item->Data.OffsetX = mobj.MItem.OffsetX;
         item->Data.OffsetY = mobj.MItem.OffsetY;
         item->Data.AmmoPid = mobj.MItem.AmmoPid;

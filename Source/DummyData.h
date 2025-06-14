@@ -114,6 +114,7 @@ struct ProtoItem
     int  LightFlags;
     int  LightDistance;
     int  LightIntensity;
+	int  ColorContour[3];
     int  LightColor;
     int  AnimWaitBase;
     int  AnimWaitRndMin;
@@ -252,7 +253,7 @@ struct Item
         int OffsetX;
         int OffsetY;
         int Dir;
-        int Reserved[ 10 ];
+        int ColorContour[ 3 ];
     } Data;
 
     int  RefCounter;
@@ -1409,6 +1410,13 @@ struct GameOptions
     int IndicatorType;
     int DoubleClickTime;
     int RoofAlpha;
+	int WallAlpha;
+	int ShowContourContainer;
+	int ShowContourItems;
+	int ShowContourDoors;
+	int ShowContourDeadCritters;
+	int ShowContourScenery;
+	int ShowContourWalls;
     int HideCursor;
     int DisableLMenu;
     int DisableMouseEvents;

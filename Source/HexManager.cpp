@@ -475,6 +475,10 @@ void HexManager::ProcessItems()
                                                             &item->DrawEffect, &item->SprDrawValid );
                     if( !item->IsNoLightInfluence() && !( item->IsFlat() && item->IsScenOrGrid() ) )
                         item->SprDraw->SetLight( hexLight, maxHexX, maxHexY );
+
+					#ifdef FONLINE_CLIENT
+					item->UpdateContour();
+					#endif
                 }
                 item->SetAnimOffs();
             }
@@ -951,11 +955,39 @@ void HexManager::RebuildMap( int rx, int ry )
                     ItemHex* item = *it;
 
                     #ifdef FONLINE_CLIENT
-                    if( item->IsHidden() || item->IsFullyTransparent() )
-                        continue;
-                    if( item->IsScenOrGrid() && !GameOpt.ShowScen )
-                        continue;
-                    if( item->IsItem() && !GameOpt.ShowItem )
+					if (((item->IsHidden() || item->IsFullyTransparent()) && !GameOpt.ShowWall) || (item->IsScenOrGrid() && !GameOpt.ShowScen) || (item->IsWall() && !GameOpt.ShowWall))
+					{
+						ushort   hx = item->GetHexX();
+						ushort   hy = item->GetHexY();
+
+						Field& f = GetField(hx, hy);
+						char&  track = GetHexTrack(hx, hy);
+						track = 0;
+
+						if (f.IsNotPassed)
+							track = 2;
+						if (f.IsNotRaked)
+							track = 1;
+
+						if (track != 0)
+						{
+							uint        spr_id = (GetHexTrack(nx, ny) == 1 ? picTrack1->GetCurSprId() : picTrack2->GetCurSprId());
+
+							if (track == 2) spr_id = picTrack2->GetCurSprId();
+							if (track == 1) spr_id = picTrack1->GetCurSprId();
+
+							SpriteInfo* si = SprMngr.GetSpriteInfo(spr_id);
+							mainTree.AddSprite(DRAW_ORDER_TRACK, nx, ny, 0, f.ScrX + HEX_OX, f.ScrY + HEX_OY + (si ? si->Height / 2 : 0), spr_id,
+												NULL, NULL, NULL, NULL, NULL, NULL);
+						}
+					}
+
+					if (GameOpt.ShowFast)
+					{
+						if (item->IsHidden() || item->IsFullyTransparent())
+							continue;
+					}
+					if (item->IsItem() && !item->IsWall() && !item->IsScen() && !GameOpt.ShowItem)
                         continue;
                     if( item->IsWall() && !GameOpt.ShowWall )
                         continue;
@@ -973,9 +1005,15 @@ void HexManager::RebuildMap( int rx, int ry )
                         continue;
                     #endif
 
+					uchar* alpha = &item->Alpha;
+					#ifndef FONLINE_MAPPER
+                    if( item->IsWall() )
+                    {
+                        alpha = &GameOpt.WallAlpha;
+                    }
+					#endif // FONLINE_MAPPER
                     Sprite& spr = mainTree.AddSprite( DRAW_ORDER_ITEM_AUTO( item ), nx, ny + item->Proto->DrawOrderOffsetHexY, item->SpriteCut,
-                                                      f.ScrX + HEX_OX, f.ScrY + HEX_OY, 0, &item->SprId, &item->ScrX, &item->ScrY, &item->Alpha,
-                                                      &item->DrawEffect, &item->SprDrawValid );
+                                                      f.ScrX + HEX_OX, f.ScrY + HEX_OY, 0, &item->SprId, &item->ScrX, &item->ScrY, alpha, &item->DrawEffect, &item->SprDrawValid );
                     if( !item->IsNoLightInfluence() && !( item->IsFlat() && item->IsScenOrGrid() ) )
                         spr.SetLight( hexLight, maxHexX, maxHexY );
                     item->SetSprite( &spr );
@@ -1015,6 +1053,13 @@ void HexManager::RebuildMap( int rx, int ry )
                                                       f.ScrX + HEX_OX, f.ScrY + HEX_OY, 0, &cr->SprId, &cr->SprOx, &cr->SprOy,
                                                       &cr->Alpha, &cr->DrawEffect, &cr->SprDrawValid );
                     spr.SetLight( hexLight, maxHexX, maxHexY );
+
+					//dead critters containers
+					if ( GameOpt.ShowContourDeadCritters && !cr->IsRawParam( MODE_NO_LOOT ) )
+					{
+						spr.SetContour( CONTOUR_CUSTOM, cr->ContourColor );					
+					}
+
                     cr->SprDraw = &spr;
 
                     cr->SetSprRect();
@@ -4588,3 +4633,75 @@ void HexManager::AffectCritter( MapObject* mobj, CritterCl* cr )
 }
 
 #endif // FONLINE_MAPPER
+
+#ifdef FONLINE_CLIENT
+
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <cmath>
+
+void HexManager::SplitColorRGB( int Color,int& Red, int& Green, int& Blue )//color ->  255000000  red,-> red255 green000 blue000
+{
+	stringstream ss; 
+
+	ss << Color; 
+	string stringColor = ss.str();	
+	const char *number_arraySa = stringColor.c_str();
+
+	string s1 = "", s2 = "", s3 = "";
+
+	bool isRed = false, isGreen = false, isBlue = false;
+
+	size_t len = stringColor.length();
+	int Otstup = 3 - (len % 3);
+	if (len >= 7 && len <= 9) isRed=true;
+	if (len >= 4 && len <= 6) isGreen=true;
+	if (len >= 1 && len <= 3) isBlue=true;
+
+	if (isRed)
+	{
+		for(int i1 = 0+Otstup; i1 < 3; i1++)
+		{
+			s1 = s1 + number_arraySa[i1];
+		}
+		for(int i2 = 3; i2 < 6; i2++)
+		{
+			s2 = s2 + number_arraySa[i2];
+		}
+		for(int i3 = 6; i3 < 9; i3++)
+		{
+			s3 = s3 + number_arraySa[i3];
+		}
+	}
+	if (isGreen)
+	{
+		s1 = "0";
+		for(int i1 = 0+Otstup; i1 < 3; i1++)
+		{
+			s2 = s2 + number_arraySa[i1];
+		}
+		for(int i2 = 3; i2 < 6; i2++)
+		{
+			s3 = s3 + number_arraySa[i2];
+		}
+	}
+	if (isBlue)
+	{
+		s1 = "0";
+		s2 = "0";
+		for(int i1 = 0+Otstup; i1 < 3; i1++)
+		{
+			s3 = s3 + number_arraySa[i1];
+		}
+	}
+
+	istringstream sstrRRed (s1, istringstream::in);
+	sstrRRed >> Red;
+	istringstream sstrGGreen (s2, istringstream::in);
+	sstrGGreen >> Green;
+	istringstream sstrBBlue (s3, istringstream::in);
+	sstrBBlue >> Blue;
+}
+
+#endif // FONLINE_CLIENT

@@ -4471,8 +4471,8 @@ void FOClient::LMenuStayOff()
     if( TargetSmth.IsItem() )
     {
         ItemHex* item = GetItem( TargetSmth.GetId() );
-        if( item && item->IsDrawContour() && item->SprDrawValid )
-            item->SprDraw->SetContour( 0 );
+        if( item && item->SprDrawValid )
+			item->HighlightContour(false);
     }
     if( TargetSmth.IsCritter() )
     {
@@ -4558,8 +4558,8 @@ void FOClient::LMenuTryCreate()
         if( TargetSmth.IsItem() )
         {
             ItemHex* item = GetItem( TargetSmth.GetId() );
-            if( item && item->IsDrawContour() && item->SprDrawValid )
-                item->SprDraw->SetContour( CONTOUR_YELLOW );
+            if( item && item->SprDrawValid )
+                item->HighlightContour(true);
         }
         if( TargetSmth.IsCritter() )
         {

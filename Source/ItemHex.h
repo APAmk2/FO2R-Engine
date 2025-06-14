@@ -44,6 +44,8 @@ public:
     bool   IsScenOrGrid()       { return Proto->IsScen() || Proto->IsGrid(); }
     bool   IsItem()             { return Proto->IsItem(); }
     bool   IsWall()             { return Proto->IsWall(); }
+	bool   IsScen()             { return Proto->IsScen(); }
+	bool   IsGrid()             { return Proto->IsGrid(); }
     ushort GetHexX()            { return HexX; }
     ushort GetHexY()            { return HexY; }
     short  GetOffsetX()         { return Data.OffsetX ? Data.OffsetX : Proto->OffsetX; }
@@ -60,6 +62,8 @@ public:
     void   RefreshAlpha() { maxAlpha = ( IsColorize() ? GetAlpha() : 0xFF ); }
     void   SetSprite( Sprite* spr );
     int    GetEggType();
+	void   UpdateContour();
+    void   HighlightContour( bool );
 
     // Finish
 private:

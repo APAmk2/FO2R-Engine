@@ -139,6 +139,9 @@ BIND_ASSERT( engine->RegisterObjectProperty( "ProtoItem", "const uint Car_MaxDet
 BIND_ASSERT( engine->RegisterObjectProperty( "ProtoItem", "const uint Car_FuelConsumption", OFFSETOF( ProtoItem, Car_FuelConsumption ) ) );
 BIND_ASSERT( engine->RegisterObjectProperty( "ProtoItem", "const uint Car_Entrance", OFFSETOF( ProtoItem, Car_Entrance ) ) );
 BIND_ASSERT( engine->RegisterObjectProperty( "ProtoItem", "const uint Car_MovementType", OFFSETOF( ProtoItem, Car_MovementType ) ) );
+BIND_ASSERT( engine->RegisterObjectProperty( "ProtoItem", "const uint8 ColorContourRed", OFFSETOF( ProtoItem, ColorContour[ 0 ] ) ) );
+BIND_ASSERT( engine->RegisterObjectProperty( "ProtoItem", "const uint8 ColorContourGreen", OFFSETOF( ProtoItem, ColorContour[ 1 ] ) ) );
+BIND_ASSERT( engine->RegisterObjectProperty( "ProtoItem", "const uint8 ColorContourBlue", OFFSETOF( ProtoItem, ColorContour[ 2 ] ) ) );
 
 #ifdef BIND_SERVER
 BIND_ASSERT( engine->RegisterObjectMethod( "ProtoItem", "string@ GetScriptName() const", asFUNCTION( BIND_CLASS ProtoItem_GetScriptName ), asCALL_CDECL_OBJFIRST ) );
@@ -348,6 +351,9 @@ BIND_ASSERT( engine->RegisterObjectProperty( "Item", "uint HolodiskNumber", OFFS
 BIND_ASSERT( engine->RegisterObjectProperty( "Item", "int16 OffsetX", OFFSETOF( Item, Data.OffsetX ) ) );
 BIND_ASSERT( engine->RegisterObjectProperty( "Item", "int16 OffsetY", OFFSETOF( Item, Data.OffsetY ) ) );
 BIND_ASSERT( engine->RegisterObjectProperty( "Item", "int16 Dir", OFFSETOF( Item, Data.Dir ) ) );
+BIND_ASSERT( engine->RegisterObjectProperty( "Item", "uint8 ColorContourRed", OFFSETOF( Item, Data.ColorContour[ 0 ] ) ) );
+BIND_ASSERT( engine->RegisterObjectProperty( "Item", "uint8 ColorContourGreen", OFFSETOF( Item, Data.ColorContour[ 1 ] ) ) );
+BIND_ASSERT( engine->RegisterObjectProperty( "Item", "uint8 ColorContourBlue", OFFSETOF( Item, Data.ColorContour[ 2 ] ) ) );
 
 /************************************************************************/
 /* CraftItem
@@ -951,6 +957,9 @@ BIND_ASSERT( engine->RegisterObjectProperty( "ItemCl", "const uint HolodiskNumbe
 BIND_ASSERT( engine->RegisterObjectProperty( "ItemCl", "const int16 OffsetX", OFFSETOF( Item, Data.OffsetX ) ) );
 BIND_ASSERT( engine->RegisterObjectProperty( "ItemCl", "const int16 OffsetY", OFFSETOF( Item, Data.OffsetY ) ) );
 BIND_ASSERT( engine->RegisterObjectProperty( "ItemCl", "const int16 Dir", OFFSETOF( Item, Data.Dir ) ) );
+BIND_ASSERT( engine->RegisterObjectProperty( "ItemCl", "uint8 CLColorContourRed", OFFSETOF( Item, Data.ColorContour[ 0 ] ) ) );
+BIND_ASSERT( engine->RegisterObjectProperty( "ItemCl", "uint8 CLColorContourGreen", OFFSETOF( Item, Data.ColorContour[ 1 ] ) ) );
+BIND_ASSERT( engine->RegisterObjectProperty( "ItemCl", "uint8 CLColorContourBlue", OFFSETOF( Item, Data.ColorContour[ 2 ] ) ) );
 
 BIND_ASSERT( engine->RegisterGlobalFunction( "CritterCl@+ GetChosen()", asFUNCTION( BIND_CLASS Global_GetChosen ), asCALL_CDECL ) );
 BIND_ASSERT( engine->RegisterGlobalFunction( "uint GetChosenActions(uint[]@+ actions)", asFUNCTION( BIND_CLASS Global_GetChosenActions ), asCALL_CDECL ) );
@@ -1531,6 +1540,13 @@ BIND_ASSERT( engine->RegisterGlobalProperty( "uint __CritterFidgetTime", &GameOp
 BIND_ASSERT( engine->RegisterGlobalProperty( "uint __Anim2CombatBegin", &GameOpt.Anim2CombatBegin ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "uint __Anim2CombatIdle", &GameOpt.Anim2CombatIdle ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "uint __Anim2CombatEnd", &GameOpt.Anim2CombatEnd ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "uint8 __WallAlpha", &GameOpt.WallAlpha ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourContainer", &GameOpt.ShowContourContainer ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourItems", &GameOpt.ShowContourItems ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourDoors", &GameOpt.ShowContourDoors ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourDeadCritters", &GameOpt.ShowContourDeadCritters ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourScenery", &GameOpt.ShowContourScenery ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourWalls", &GameOpt.ShowContourWalls ) );
 #endif
 
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __MapHexagonal", &GameOpt.MapHexagonal ) );
