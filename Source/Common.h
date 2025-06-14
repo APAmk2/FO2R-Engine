@@ -754,6 +754,7 @@ struct GameOptions
     void         ( * GetRainOffset )( short*, short* );
 
 	int			 MapperAutosave;
+	bool		 SpritesFiltering;
 
     GameOptions();
 } extern GameOpt;
