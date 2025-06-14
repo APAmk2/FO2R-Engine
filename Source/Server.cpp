@@ -3407,7 +3407,7 @@ bool FOServer::InitReal()
     STATIC_ASSERT( sizeof( GameVar ) == 28 );
     STATIC_ASSERT( sizeof( Mutex ) == 44 );
     STATIC_ASSERT( sizeof( MutexSpinlock ) == 4 );
-    STATIC_ASSERT( sizeof( GameOptions ) == 1352);
+    STATIC_ASSERT( sizeof( GameOptions ) == 1356);
     STATIC_ASSERT( sizeof( ScriptArray ) == 28 );
     STATIC_ASSERT( sizeof( ProtoMap::Tile ) == 12 );
     STATIC_ASSERT( PROTO_ITEM_USER_DATA_SIZE == 500 );
