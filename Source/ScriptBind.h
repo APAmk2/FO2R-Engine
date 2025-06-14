@@ -1054,6 +1054,8 @@ BIND_ASSERT( engine->RegisterGlobalFunction( "void SetRainAnimation(string@+ fal
 BIND_ASSERT( engine->RegisterGlobalFunction( "bool SaveScreenshot()", asFUNCTION( BIND_CLASS Global_SaveScreenshot ), asCALL_CDECL ) );
 BIND_ASSERT( engine->RegisterGlobalFunction( "bool SaveLogFile()", asFUNCTION( BIND_CLASS Global_SaveLogFile ), asCALL_CDECL ) );
 
+BIND_ASSERT( engine->RegisterGlobalFunction( "void ChosenRefreshMap()", asFUNCTION( BIND_CLASS Global_ChosenRefreshMap ), asCALL_CDECL ) );
+
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ConsoleActive", &BIND_CLASS ConsoleActive ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __GmapActive", &BIND_CLASS GmapActive ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __GmapWait", &BIND_CLASS GmapWait ) );

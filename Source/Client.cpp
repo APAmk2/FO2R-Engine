@@ -11637,6 +11637,11 @@ void FOClient::SScriptFunc::Global_DrawText( ScriptString& text, int x, int y, i
     SprMngr.DrawStr( r, text.c_str(), flags, color, font );
 }
 
+void FOClient::SScriptFunc::Global_ChosenRefreshMap()
+{
+	Self->HexMngr.RefreshMap();
+}
+
 void FOClient::SScriptFunc::Global_DrawPrimitive( int primitive_type, ScriptArray& data )
 {
     if( !SpritesCanDraw )
