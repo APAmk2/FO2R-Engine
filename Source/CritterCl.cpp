@@ -1712,7 +1712,10 @@ void CritterCl::DrawTextOnHead()
         char str[ MAX_FOTEXT ];
         uint color;
 
-		Str::Copy(str, strTextOnHead.c_str());
+		uint nameSize = NameOnHead.length();
+		if (!nameSize) nameSize = Name.length();
+
+		Str::Copy(str, MAX_FOTEXT - nameSize, strTextOnHead.c_str());
 
         if( NameOnHead.length() )
             Str::Append( str, NameOnHead.c_str() );
