@@ -1711,34 +1711,19 @@ void CritterCl::DrawTextOnHead()
 
         char str[ MAX_FOTEXT ];
         uint color;
-        if( strTextOnHead.empty() )
-        {
-            if( NameOnHead.length() )
-                Str::Copy( str, NameOnHead.c_str() );
-            else
-                Str::Copy( str, Name.c_str() );
-            if( GameOpt.ShowCritId )
-                Str::Append( str, Str::FormatBuf( " <%u>", GetId() ) );
-            if( FLAG( Flags, FCRIT_DISCONNECT ) )
-                Str::Append( str, GameOpt.PlayerOffAppendix.c_str() );
-            color = ( NameColor ? NameColor : COLOR_CRITTER_NAME );
-        }
-        else
-        {
-            Str::Copy( str, strTextOnHead.c_str() );
-            color = textOnHeadColor;
 
-            if( tickTextDelay > 500 )
-            {
-                uint dt = Timer::GameTick() - tickStartText;
-                uint hide = tickTextDelay - 200;
-                if( dt >= hide )
-                {
-                    uint alpha = 0xFF * ( 100 - Procent( tickTextDelay - hide, dt - hide ) ) / 100;
-                    color = ( alpha << 24 ) | ( color & 0xFFFFFF );
-                }
-            }
-        }
+		Str::Copy(str, strTextOnHead.c_str());
+
+        if( NameOnHead.length() )
+            Str::Append( str, NameOnHead.c_str() );
+        else
+            Str::Append( str, Name.c_str() );
+        if( GameOpt.ShowCritId )
+            Str::Append( str, Str::FormatBuf( " <%u>", GetId() ) );
+        if( FLAG( Flags, FCRIT_DISCONNECT ) )
+            Str::Append( str, GameOpt.PlayerOffAppendix.c_str() );
+
+		color = (NameColor ? NameColor : COLOR_CRITTER_NAME);
 
         if( fadingEnable )
         {
