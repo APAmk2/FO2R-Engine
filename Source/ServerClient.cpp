@@ -3692,6 +3692,8 @@ void FOServer::Process_Dir( Client* cl )
     }
 
     cl->Data.Dir = dir;
+	cl->ProcessVisibleCritters();
+	cl->ProcessVisibleItems();
     cl->SendA_Dir();
 }
 
