@@ -2033,11 +2033,30 @@ void HexManager::DrawMap()
     // Tiles
     if( GameOpt.ShowTile )
     {
+		#ifdef FO_D3D
+		device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+		device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+		#endif
         SprMngr.DrawSprites( tilesTree, false, false, DRAW_ORDER_TILE, DRAW_ORDER_TILE_END );
+		#ifdef FO_D3D
+		device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+		device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+		#endif
     }
 
     // Flat sprites
+	#ifdef FO_D3D
+	if (!GameOpt.SpritesFiltering)
+	{
+		device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+		device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+	}
+	#endif
     SprMngr.DrawSprites( mainTree, true, false, DRAW_ORDER_FLAT, DRAW_ORDER_LIGHT - 1 );
+	#ifdef FO_D3D
+	device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+	device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+	#endif
 
     // Light
     for( uint i = 0; i < lightPointsCount; i++ )
@@ -2048,12 +2067,31 @@ void HexManager::DrawMap()
     DrawCursor( cursorPrePic->GetCurSprId() );
 
     // Sprites
+	#ifdef FO_D3D
+	if (!GameOpt.SpritesFiltering)
+	{
+		device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+		device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+	}
+	#endif
     SprMngr.DrawSprites( mainTree, true, true, DRAW_ORDER_LIGHT, DRAW_ORDER_LAST );
+	#ifdef FO_D3D
+	device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+	device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+	#endif
 
     // Roof
     if( GameOpt.ShowRoof )
     {
+		#ifdef FO_D3D
+		device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+		device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+		#endif
         SprMngr.DrawSprites( roofTree, false, true, 0, 0 );
+		#ifdef FO_D3D
+		device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+		device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+		#endif
 
         if( rainCapacity )
             SprMngr.DrawSprites( roofRainTree, false, false, 0, 0 );
