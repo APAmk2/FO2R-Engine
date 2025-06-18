@@ -982,7 +982,7 @@ void HexManager::RebuildMap( int rx, int ry )
 							if (track == 1) spr_id = picTrack1->GetCurSprId();
 
 							SpriteInfo* si = SprMngr.GetSpriteInfo(spr_id);
-							mainTree.AddSprite(DRAW_ORDER_TRACK, nx, ny, 0, f.ScrX + HEX_OX, f.ScrY + HEX_OY + (si ? si->Height / 2 : 0), spr_id,
+							mainTree.AddSprite(DRAW_ORDER_TRACK, nx, ny, 0, f.ScrX + HEX_OX, f.ScrY + HEX_OY, spr_id,
 												NULL, NULL, NULL, NULL, NULL, NULL);
 						}
 					}

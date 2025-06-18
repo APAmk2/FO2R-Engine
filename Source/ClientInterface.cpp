@@ -1648,10 +1648,7 @@ void FOClient::InvDraw()
     }
 
     // Items in inventory
-    uint skip_id = 0;
-    if( IsCurMode( CUR_HAND ) && IfaceHold == IFACE_INV_INV && InvHoldId )
-        skip_id = InvHoldId;
-    ContainerDraw( Rect( InvWInv, InvX, InvY ), InvHeightItem, InvScroll, InvCont, skip_id, InvColumns, InvItemPadX);
+    ContainerDraw( Rect( InvWInv, InvX, InvY ), InvHeightItem, InvScroll, InvCont, 0, InvColumns, InvItemPadX);
 
     if( InvItemInfo.empty() )
     {
@@ -9271,8 +9268,8 @@ void FOClient::PupDraw()
     }
 
     // Items
-	ContainerDraw(Rect(PupWCont1, PupX, PupY), PupHeightItem1, PupScroll1, PupCont1, IfaceHold == IFACE_PUP_CONT1 ? PupHoldId : 0, PupColumns1, PupItemPadX1);
-	ContainerDraw(Rect(PupWCont2, PupX, PupY), PupHeightItem2, PupScroll2, PupCont2, IfaceHold == IFACE_PUP_CONT2 ? PupHoldId : 0, PupColumns2, PupItemPadX2);
+	ContainerDraw(Rect(PupWCont1, PupX, PupY), PupHeightItem1, PupScroll1, PupCont1, 0, PupColumns1, PupItemPadX1);
+	ContainerDraw(Rect(PupWCont2, PupX, PupY), PupHeightItem2, PupScroll2, PupCont2, 0, PupColumns2, PupItemPadX2);
 }
 
 void FOClient::PupLMouseDown()
@@ -9746,7 +9743,7 @@ void FOClient::CurDraw()
 
         if( GetActiveScreen() == SCREEN__INVENTORY )
         {
-            if( IfaceHold && InvHoldId )
+            if( IfaceHold && InvHoldId && (!Keyb::CtrlDwn && !Keyb::ShiftDwn && !Keyb::AltDwn))
             {
                 Item* item = Chosen->GetItem( InvHoldId );
                 if( !item )
@@ -9812,7 +9809,7 @@ DrawCurHand:
             else
                 goto DrawCurHand;
         }
-        else if( GetActiveScreen() == SCREEN__PICKUP && PupHoldId )
+        else if( GetActiveScreen() == SCREEN__PICKUP && PupHoldId && (!Keyb::CtrlDwn && !Keyb::ShiftDwn && !Keyb::AltDwn))
         {
             Item* item = GetContainerItem( IfaceHold == IFACE_PUP_CONT1 ? PupCont1 : PupCont2, PupHoldId );
             if( item )
