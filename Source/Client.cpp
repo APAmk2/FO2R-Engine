@@ -7527,7 +7527,7 @@ void FOClient::CrittersProcess()
             is_run = false;
         else if( !GameOpt.RunOnTransfer && Chosen->GetParam( TO_TRANSFER ) )
             is_run = false;
-        else if( IsTurnBased )
+        else if( IsTurnBased && !GameOpt.TbAlwaysRun )
             is_run = false;
         else if( Chosen->IsDmgLeg() || Chosen->IsOverweight() )
             is_run = false;
