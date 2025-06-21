@@ -799,12 +799,15 @@ void HexManager::DrawCursor( uint spr_id )
 
 void HexManager::DrawCursor( const char* text )
 {
-    if( GameOpt.HideCursor || !isShowCursor )
-        return;
-    int x = (int) ( (float) ( cursorX + GameOpt.ScrOx ) / GameOpt.SpritesZoom );
-    int y = (int) ( (float) ( cursorY + GameOpt.ScrOy ) / GameOpt.SpritesZoom );
-    SprMngr.DrawStr( Rect( x, y, (int) ( (float) ( x + HEX_W ) / GameOpt.SpritesZoom ),
-                           (int) ( (float) ( y + HEX_REAL_H ) / GameOpt.SpritesZoom ) ), text, FT_CENTERX | FT_CENTERY, COLOR_TEXT_WHITE );
+	if (GameOpt.HideCursor || !isShowCursor)
+		return;
+
+	int x = (int)((float)(cursorX + GameOpt.ScrOx) / GameOpt.SpritesZoom);
+	int y = (int)((float)(cursorY + GameOpt.ScrOy) / GameOpt.SpritesZoom);
+	Rect r = Rect(x, y, (int)((float)(x + HEX_W / GameOpt.SpritesZoom)),
+		(int)((float)(y + HEX_REAL_H / GameOpt.SpritesZoom)));
+
+	SprMngr.DrawStr(r, text, FT_CENTERX | FT_CENTERY | FT_BORDERED, COLOR_TEXT_WHITE, 5);
 }
 
 void HexManager::RebuildMap( int rx, int ry )
