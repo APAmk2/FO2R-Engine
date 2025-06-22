@@ -2273,7 +2273,7 @@ void FOClient::ConsoleProcess()
 void FOClient::GameDraw()
 {
     // Move cursor
-    if( IsCurMode( CUR_MOVE ) )
+    if( IsCurMode( CUR_MOVE ) || GameOpt.NoobCursor )
     {
         ushort hx, hy;
         if( ( GameOpt.ScrollMouseRight || GameOpt.ScrollMouseLeft || GameOpt.ScrollMouseUp || GameOpt.ScrollMouseDown ) || !GetCurHex( hx, hy, false ) )
@@ -2715,10 +2715,29 @@ void FOClient::GameRMouseDown()
     if( !( IntVisible && ( ( IsCurInRect( IntWMain ) && SprMngr.IsPixNoTransp( IntMainPic->GetCurSprId(), GameOpt.MouseX - IntWMain[ 0 ], GameOpt.MouseY - IntWMain[ 1 ], false ) ) ||
                            ( IntAddMess && IsCurInRect( IntWAddMess ) && SprMngr.IsPixNoTransp( IntPWAddMess->GetCurSprId(), GameOpt.MouseX - IntWAddMess[ 0 ], GameOpt.MouseY - IntWAddMess[ 1 ], false ) ) ) ) )
         IfaceHold = IFACE_GAME_MNEXT;
+
+	if(GameOpt.NoobCursor)
+	{
+		ActionEvent* act = (IsAction(CHOSEN_MOVE) ? &ChosenAction[0] : NULL);
+		ushort hx, hy;
+		if (act && Timer::FastTick() - act->Param[5] < (GameOpt.DoubleClickTime ? GameOpt.DoubleClickTime : GetDoubleClickTicks()))
+		{
+			act->Param[2] = (GameOpt.AlwaysRun ? 0 : 1);
+			act->Param[4] = 0;
+		}
+		else if (GetCurHex(hx, hy, false) && Chosen)
+		{
+			uint dist = DistGame(Chosen->GetHexX(), Chosen->GetHexY(), hx, hy);
+			bool is_run = (Keyb::ShiftDwn ? (!GameOpt.AlwaysRun) : (GameOpt.AlwaysRun && dist >= GameOpt.AlwaysRunMoveDist));
+			SetAction(CHOSEN_MOVE, hx, hy, is_run, 0, act ? 0 : 1, Timer::FastTick());
+		}
+	}
 }
 
 void FOClient::GameRMouseUp()
 {
+	if (GameOpt.NoobCursor) return;
+
     if( IfaceHold == IFACE_GAME_MNEXT && Chosen )
     {
         switch( GetCurMode() )

@@ -1067,6 +1067,7 @@ BIND_ASSERT( engine->RegisterGlobalProperty( "int __GmapGroupCurY", &BIND_CLASS 
 BIND_ASSERT( engine->RegisterGlobalProperty( "int __GmapGroupToX", &BIND_CLASS GmapGroupToX ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "int __GmapGroupToY", &BIND_CLASS GmapGroupToY ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "float __GmapGroupSpeed", &BIND_CLASS GmapGroupSpeed ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "bool __NoobCursor", &GameOpt.NoobCursor) );
 #endif
 
 #if defined ( BIND_CLIENT ) || defined ( BIND_SERVER )
@@ -1445,6 +1446,7 @@ BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowCorners", &GameOpt.Show
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowSpriteCuts", &GameOpt.ShowSpriteCuts ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowDrawOrder", &GameOpt.ShowDrawOrder ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __SplitTilesCollection", &GameOpt.SplitTilesCollection ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "int __MapperAutosave", &GameOpt.MapperAutosave ) );
 #endif
 
 #if defined ( BIND_CLIENT ) || defined ( BIND_MAPPER )
@@ -1549,6 +1551,7 @@ BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourDoors", &GameOpt
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourDeadCritters", &GameOpt.ShowContourDeadCritters ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourScenery", &GameOpt.ShowContourScenery ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourWalls", &GameOpt.ShowContourWalls ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "bool __SpritesFiltering", &GameOpt.SpritesFiltering ) );
 #endif
 
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __MapHexagonal", &GameOpt.MapHexagonal ) );

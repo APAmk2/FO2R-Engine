@@ -1452,4 +1452,6 @@ struct GameOptions
     int SplitTilesCollection;
 	
 	int MapperAutosave;
+	bool SpritesFiltering;
+	bool NoobCursor;
 } GameOpt;

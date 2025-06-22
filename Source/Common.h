@@ -755,6 +755,7 @@ struct GameOptions
 
 	int			 MapperAutosave;
 	bool		 SpritesFiltering;
+	bool		 NoobCursor;
 
     GameOptions();
 } extern GameOpt;
