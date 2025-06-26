@@ -883,6 +883,9 @@ void FormatText( FontFormatInfo& fi, int fmt_type )
                 i_advance = 0;
             }
 
+			if( curx - r.L > fi.MaxCurX )
+                fi.MaxCurX = curx - r.L;
+
             curx = r.L;
             continue;
         case '\0':
