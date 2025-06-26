@@ -187,6 +187,7 @@ void FOServer::Finish()
     WriteLog( "Count of lags (>100ms): %u\n", Statistics.LagsCount );
 
     ActiveInProcess = false;
+	IniParser::ClearBuffer();
 }
 
 string FOServer::GetIngamePlayersStatistics()
@@ -2566,6 +2567,8 @@ void FOServer::Process_Command( BufferManager& buf, void ( * logcb )( const char
         else
             logcb( "Reload proto locations fail." );
 
+		IniParser::ClearBuffer();
+
         ResynchronizeLogicThreads();
     }
     break;
@@ -3773,6 +3776,7 @@ bool FOServer::InitReal()
     }
     #endif
 
+	IniParser::ClearBuffer();
     return true;
 }
 

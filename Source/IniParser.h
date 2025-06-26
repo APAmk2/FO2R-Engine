@@ -19,6 +19,8 @@ private:
     bool GetPos( const char* app_name, const char* key_name, uint& iter );
 
 public:
+	static string strbuffer;
+
     IniParser();
     ~IniParser();
     bool  IsLoaded();
@@ -49,6 +51,7 @@ public:
     void    CacheKeys();
     bool    IsCachedKey( const char* key_name );
     StrSet& GetCachedKeys();
+	static void ClearBuffer();
 };
 
 #endif // ___INI_PARSER___
