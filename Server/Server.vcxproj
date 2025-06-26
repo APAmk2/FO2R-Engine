@@ -192,6 +192,7 @@
     <ResourceCompile Include="Server.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\API\API_Server.cpp" />
     <ClCompile Include="..\Source\AngelScript\preprocessor.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -560,6 +561,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\API\API_Common.h" />
+    <ClInclude Include="..\API\API_Server.h" />
     <ClInclude Include="..\Source\AngelScript\as_symboltable.h" />
     <ClInclude Include="..\Source\AngelScript\preprocessor.h" />
     <ClInclude Include="..\Source\AngelScript\scriptstring.h" />

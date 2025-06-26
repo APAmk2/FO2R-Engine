@@ -20,6 +20,9 @@
     <Filter Include="SHA2">
       <UniqueIdentifier>{d7d82959-84ad-4bf1-bb52-634f2505a610}</UniqueIdentifier>
     </Filter>
+    <Filter Include="API">
+      <UniqueIdentifier>{b15a51a7-b7e2-4637-b985-72bdfb1d3040}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Server.ico">
@@ -304,6 +307,9 @@
     </ClCompile>
     <ClCompile Include="..\Source\AngelScript\preprocessor.cpp">
       <Filter>AngelScript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\API\API_Server.cpp">
+      <Filter>API</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -621,6 +627,12 @@
     </ClInclude>
     <ClInclude Include="..\Source\AngelScript\preprocessor.h">
       <Filter>AngelScript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\API\API_Common.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="..\API\API_Server.h">
+      <Filter>API</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
