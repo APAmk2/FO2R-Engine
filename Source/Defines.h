@@ -553,6 +553,8 @@ const char ClientSaveSignature[ 4 ] = { 'F', 'O', 0, CLIENT_SAVE_LAST };
 #define MODE_NO_RUN                  ( 540 )
 #define MODE_NO_TALK                 ( 541 )
 
+#define MODE_PROCESS_ON_GLOB		 ( 544 )
+
 // Traits
 #define TRAIT_BEGIN                  ( GameOpt.TraitBegin )
 #define TRAIT_END                    ( GameOpt.TraitEnd )

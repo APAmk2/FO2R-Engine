@@ -607,6 +607,9 @@ bool FOServer::Logic_CritterProccess(Critter* cr)
 	if (cr->IsNotValid)
 		return false;
 
+	if (cr->IsNpc() && !cr->GetMap() && !cr->GetParam(MODE_PROCESS_ON_GLOB))
+		return false;
+
 	// Process logic
 	ProcessCritter(cr);
 	return true;
