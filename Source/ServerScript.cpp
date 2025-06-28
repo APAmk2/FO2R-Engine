@@ -967,6 +967,8 @@ void FOServer::SScriptFunc::Item_SetLexems( Item* item, ScriptString* lexems )
         SCRIPT_ERROR( "Unknown accessory." );
         return;
     }
+
+	item->NotifyChangeLexems();
 }
 
 Item* FOServer::SScriptFunc::Item_GetChild( Item* item, uint child_index )
