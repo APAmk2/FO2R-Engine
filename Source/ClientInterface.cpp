@@ -3817,7 +3817,7 @@ void FOClient::DlgLMouseDown( bool is_dialog )
         else if( IsCurInRect( DlgBScrDn, DlgX, DlgY ) && BarterIsPlayers )
             IfaceHold = IFACE_DLG_SCR_DN;
 
-        if( IsCurMode( CUR_DEFAULT ) && ( IfaceHold == IFACE_BARTER_CONT1 || IfaceHold == IFACE_BARTER_CONT2 || IfaceHold == IFACE_BARTER_CONT1O || IfaceHold == IFACE_BARTER_CONT2O ) )
+        if( IsCurMode( CUR_DEFAULT ) && (!Keyb::ShiftDwn && !Keyb::CtrlDwn) && ( IfaceHold == IFACE_BARTER_CONT1 || IfaceHold == IFACE_BARTER_CONT2 || IfaceHold == IFACE_BARTER_CONT1O || IfaceHold == IFACE_BARTER_CONT2O ) )
         {
             IfaceHold = IFACE_NONE;
             LMenuTryActivate();

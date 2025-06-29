@@ -92,8 +92,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\Tools\Mapper\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">..\..\Tools\Mapper\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\Server\Tools\Mapper\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">..\..\Server\Tools\Mapper\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">.\ReleaseD3D\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
