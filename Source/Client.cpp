@@ -7811,6 +7811,7 @@ label_EndMove:
                 break;
             if( !item->IsWeapon() )
                 break;
+			#ifndef FORP_ENGINE
             if( target_cr->IsDead() )
                 break;
             if( !Chosen->IsRawParam( MODE_UNLIMITED_AMMO ) && item->WeapGetMaxAmmoCount() && item->WeapIsEmpty() )
@@ -7833,6 +7834,7 @@ label_EndMove:
                 AddMess( FOMB_GAME, FmtGameText( STR_INV_WEAR_WEAPON_BROKEN ) );
                 break;
             }
+			#endif
         }
         else if( is_reload )
         {
