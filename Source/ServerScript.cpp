@@ -1573,7 +1573,7 @@ bool FOServer::SScriptFunc::Crit_TransitToHex( Critter* cr, ushort hx, ushort hy
     return true;
 }
 
-bool FOServer::SScriptFunc::Crit_TransitToMapHex( Critter* cr, uint map_id, ushort hx, ushort hy, uchar dir, bool with_group )
+bool FOServer::SScriptFunc::Crit_TransitToMapHex( Critter* cr, uint map_id, ushort hx, ushort hy, uchar dir, uchar radius, bool with_group )
 {
     if( cr->IsNotValid )
         SCRIPT_ERROR_R0( "This nullptr." );
@@ -1590,7 +1590,7 @@ bool FOServer::SScriptFunc::Crit_TransitToMapHex( Critter* cr, uint map_id, usho
         if( !with_group )
         {
             MapMngr.GM_LeaveGroup( cr );
-            return Crit_TransitToMapHex( cr, map_id, hx, hy, dir, true );
+            return Crit_TransitToMapHex( cr, map_id, hx, hy, dir, radius, true );
         }
         if( dir < DIRS_COUNT && cr->Data.Dir != dir )
             cr->Data.Dir = dir;
@@ -1605,7 +1605,7 @@ bool FOServer::SScriptFunc::Crit_TransitToMapHex( Critter* cr, uint map_id, usho
         {
             if( dir < DIRS_COUNT && cr->Data.Dir != dir )
                 cr->Data.Dir = dir;
-            if( !MapMngr.Transit( cr, map, hx, hy, cr->GetDir(), 2, true ) )
+            if( !MapMngr.Transit( cr, map, hx, hy, cr->GetDir(), radius, true ) )
                 SCRIPT_ERROR_R0( "Transit from map to map fail." );
         }
         else if( dir < DIRS_COUNT && cr->Data.Dir != dir )
@@ -1627,7 +1627,7 @@ bool FOServer::SScriptFunc::Crit_TransitToMapHex( Critter* cr, uint map_id, usho
     return true;
 }
 
-bool FOServer::SScriptFunc::Crit_TransitToMapEntire( Critter* cr, uint map_id, int entire, bool with_group )
+bool FOServer::SScriptFunc::Crit_TransitToMapEntire( Critter* cr, uint map_id, int entire, uchar radius, bool with_group )
 {
     if( cr->IsNotValid )
         SCRIPT_ERROR_R0( "This nullptr." );
@@ -1649,7 +1649,7 @@ bool FOServer::SScriptFunc::Crit_TransitToMapEntire( Critter* cr, uint map_id, i
         if( !with_group )
         {
             MapMngr.GM_LeaveGroup( cr );
-            return Crit_TransitToMapEntire( cr, map_id, entire, true );
+            return Crit_TransitToMapEntire( cr, map_id, entire, radius, true );
         }
         if( !cr->GroupMove )
             SCRIPT_ERROR_R0( "Group nullptr." );
@@ -1658,7 +1658,7 @@ bool FOServer::SScriptFunc::Crit_TransitToMapEntire( Critter* cr, uint map_id, i
     }
     else
     {
-        if( !MapMngr.Transit( cr, map, hx, hy, dir, 2, true ) )
+        if( !MapMngr.Transit( cr, map, hx, hy, dir, radius, true ) )
             SCRIPT_ERROR_R0( "Transit from map to map fail." );
     }
 
