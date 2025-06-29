@@ -2956,6 +2956,7 @@ void FOClient::IntDraw()
     SprMngr.DrawStr( IntAC, Str::FormatBuf( "%c%03d", '9' + 4, Chosen->GetParam( ST_ARMOR_CLASS ) ), 0, COLOR_IFACE, FONT_NUM );
 
     // Indicator
+	#ifndef FORP_ENGINE
     Item* item = Chosen->ItemSlotMain;
     int indicator_max = item->Proto->IndicatorMax;
     int indicator_cur = item->Data.Indicator;
@@ -2990,6 +2991,7 @@ void FOClient::IntDraw()
     {
         DrawIndicator( IntWWearProcent, IntWearPoints, COLOR_TEXT_RED, 0, IntWearTick, true, false );
     }
+	#endif
 }
 
 int FOClient::IntLMouseDown()
