@@ -13,6 +13,8 @@ struct AIDataPlane
     int Priority;
     int Identifier;
     int IdentifierExt;
+	int Delay;
+	int	IsNotProccess;
 
     struct
     {
@@ -422,17 +424,20 @@ typedef Critter CritterCl;
 
 struct Map
 {
-    struct MapData
-    {
-        int MapId;
-        int MapPid;
-        int MapRain;
-        int IsTurnBasedAviable;
-        int MapTime;
-        int ScriptId;
-        int MapDayTime[ 4 ];
-        int MapDayColor[ 12 ];
-    } Data;
+
+	struct MapData
+	{
+		int   MapId;
+		int	  MapPid;
+		int	  MapRain;
+		int   IsTurnBasedAviable;
+		int   MapTime;
+		int   ScriptId;
+		int   MapDayTime[4];
+		int	  MapDayColor[12];
+		int   ProccessSleep;
+		int   ProccessTick;
+	} Data;
 
     int  TurnBasedRound;
     int  TurnBasedTurn;
