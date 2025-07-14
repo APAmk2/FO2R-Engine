@@ -22,8 +22,7 @@ SpriteManager::SpriteManager(): isInit( 0 ), flushSprCnt( 0 ), curSprCnt( 0 ), S
                                 sceneBeginned( false ), d3dDevice( 0 ), vbMain( 0 ), ibMain( 0 ), PreRestore( NULL ), PostRestore( NULL ), baseTextureSize( 0 ),
                                 eggValid( false ), eggHx( 0 ), eggHy( 0 ), eggX( 0 ), eggY( 0 ), eggOX( NULL ), eggOY( NULL ), sprEgg( NULL ), eggSurfWidth( 1.0f ), eggSurfHeight( 1.0f ), eggSprWidth( 1 ), eggSprHeight( 1 ),
                                 contoursTexture( NULL ), contoursTextureSurf( 0 ), contoursMidTexture( NULL ), contoursMidTextureSurf( 0 ), contours3dRT( 0 ),
-                                contoursPS( NULL ), contoursCT( NULL ), contoursAdded( false ),
-                                modeWidth( 0 ), modeHeight( 0 )
+                                contoursPS( NULL ), contoursCT( NULL ), contoursAdded( false )
 {
     memzero( &presentParams, sizeof( presentParams ) );
     memzero( &mngrParams, sizeof( mngrParams ) );
@@ -67,8 +66,6 @@ bool SpriteManager::Init( SpriteMngrParams& params )
     PostRestore = params.PostRestoreFunc;
     flushSprCnt = GameOpt.FlushVal;
     baseTextureSize = GameOpt.BaseTexture;
-    modeWidth = GameOpt.ScreenWidth;
-    modeHeight = GameOpt.ScreenHeight;
     curSprCnt = 0;
 
     #ifdef FO_D3D
@@ -89,8 +86,8 @@ bool SpriteManager::Init( SpriteMngrParams& params )
     presentParams.EnableAutoDepthStencil = TRUE;
     presentParams.AutoDepthStencilFormat = D3DFMT_D24S8;
     presentParams.hDeviceWindow = fl_xid( MainWindow );
-    presentParams.BackBufferWidth = modeWidth;
-    presentParams.BackBufferHeight = modeHeight;
+    presentParams.BackBufferWidth = GameOpt.ScreenWidth;
+    presentParams.BackBufferHeight = GameOpt.ScreenHeight;
     presentParams.BackBufferFormat = D3DFMT_X8R8G8B8;
     if( !GameOpt.VSync )
         presentParams.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
@@ -233,7 +230,7 @@ bool SpriteManager::Init( SpriteMngrParams& params )
     // 3d stuff
     if( !Animation3d::StartUp( d3dDevice ) )
         return false;
-    if( !Animation3d::SetScreenSize( modeWidth, modeHeight ) )
+    if( !Animation3d::SetScreenSize( GameOpt.ScreenWidth, GameOpt.ScreenHeight ) )
         return false;
 
     // Render stuff
@@ -422,12 +419,12 @@ bool SpriteManager::InitBuffers()
         // Contours render target
         D3D_HR( direct3D->CheckDepthStencilMatch( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, D3DFMT_A8R8G8B8, D3DFMT_D24S8 ) );
         contoursTexture = new Texture();
-        D3D_HR( D3DXCreateTexture( d3dDevice, modeWidth, modeHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &contoursTexture->Instance ) );
+        D3D_HR( D3DXCreateTexture( d3dDevice, GameOpt.ScreenWidth, GameOpt.ScreenHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &contoursTexture->Instance ) );
         contoursMidTexture = new Texture();
         D3D_HR( contoursTexture->Instance->GetSurfaceLevel( 0, &contoursTextureSurf ) );
-        D3D_HR( D3DXCreateTexture( d3dDevice, modeWidth, modeHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &contoursMidTexture->Instance ) );
+        D3D_HR( D3DXCreateTexture( d3dDevice, GameOpt.ScreenWidth, GameOpt.ScreenHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &contoursMidTexture->Instance ) );
         D3D_HR( contoursMidTexture->Instance->GetSurfaceLevel( 0, &contoursMidTextureSurf ) );
-        D3D_HR( d3dDevice->CreateRenderTarget( modeWidth, modeHeight, D3DFMT_A8R8G8B8, presentParams.MultiSampleType, presentParams.MultiSampleQuality, FALSE, &contours3dRT, NULL ) );
+        D3D_HR( d3dDevice->CreateRenderTarget( GameOpt.ScreenWidth, GameOpt.ScreenHeight, D3DFMT_A8R8G8B8, presentParams.MultiSampleType, presentParams.MultiSampleQuality, FALSE, &contours3dRT, NULL ) );
     }
 
     // 3d models prerendering
@@ -485,7 +482,7 @@ bool SpriteManager::InitRenderStates()
     #else
     GL( glMatrixMode( GL_PROJECTION ) );
     GL( glLoadIdentity() );
-    GL( gluOrtho2D( 0, modeWidth, modeHeight, 0 ) );
+    GL( gluOrtho2D( 0, GameOpt.ScreenWidth, GameOpt.ScreenHeight, 0 ) );
     GL( glGetFloatv( GL_PROJECTION_MATRIX, projectionMatrix ) );
     GL( glClearColor( 0.0f, 0.0f, 0.0f, 1.0f ) );
     # ifdef FO_WINDOWS
@@ -649,8 +646,8 @@ bool SpriteManager::CreateRenderTarget( RenderTarget& rt, bool depth_stencil, bo
 {
     // Zero data
     memzero( &rt, sizeof( rt ) );
-    width = ( width ? width : modeWidth );
-    height = ( height ? height : modeHeight );
+    width = ( width ? width : GameOpt.ScreenWidth );
+    height = ( height ? height : GameOpt.ScreenHeight );
 
     // Multisampling
     static int samples = -1;
@@ -3565,7 +3562,7 @@ uint SpriteManager::Render3dSprite( Animation3d* anim3d, int dir, int time_proc 
     Render3d( spr3dSurfWidth / 2, spr3dSurfHeight - spr3dSurfHeight / 4, 1.0f, anim3d, NULL, 0xFFFFFFFF );
     anim3d->EnableSetupBorders( true );
     anim3d->SetupBorders();
-    Animation3d::SetScreenSize( modeWidth, modeHeight );
+    Animation3d::SetScreenSize( GameOpt.ScreenWidth, GameOpt.ScreenHeight );
 
     D3D_HR( d3dDevice->SetRenderTarget( 0, old_rt ) );
     D3D_HR( d3dDevice->SetDepthStencilSurface( old_ds ) );
@@ -3664,7 +3661,7 @@ uint SpriteManager::Render3dSprite( Animation3d* anim3d, int dir, int time_proc 
 
     anim3d->EnableSetupBorders( true );
     anim3d->SetupBorders();
-    Animation3d::SetScreenSize( modeWidth, modeHeight );
+    Animation3d::SetScreenSize( GameOpt.ScreenWidth, GameOpt.ScreenHeight );
     Rect fb = anim3d->GetFullBorders();
 
     // Copy from multisampled to default rt
@@ -3683,9 +3680,9 @@ uint SpriteManager::Render3dSprite( Animation3d* anim3d, int dir, int time_proc 
 
         GL( glMatrixMode( GL_PROJECTION ) );
         GL( glLoadIdentity() );
-        GL( gluOrtho2D( 0, modeWidth, modeHeight, 0 ) );
+        GL( gluOrtho2D( 0, GameOpt.ScreenWidth, GameOpt.ScreenHeight, 0 ) );
         GL( glGetFloatv( GL_PROJECTION_MATRIX, projectionMatrix ) );
-        GL( glViewport( 0, 0, modeWidth, modeHeight ) );
+        GL( glViewport( 0, 0, GameOpt.ScreenWidth, GameOpt.ScreenHeight ) );
     }
 
     // Grow surfaces while sprite not fitted in it
@@ -4403,7 +4400,7 @@ bool SpriteManager::DrawSprites( Sprites& dtree, bool collect_contours, bool use
         // Check borders
         if( !si->Anim3d )
         {
-            if( x / zoom > modeWidth || ( x + si->Width ) / zoom < 0 || y / zoom > modeHeight || ( y + si->Height ) / zoom < 0 )
+            if( x / zoom > GameOpt.ScreenWidth || ( x + si->Width ) / zoom < 0 || y / zoom > GameOpt.ScreenHeight || ( y + si->Height ) / zoom < 0 )
                 continue;
         }
 
@@ -4454,7 +4451,7 @@ bool SpriteManager::DrawSprites( Sprites& dtree, bool collect_contours, bool use
         }
 
         // Check borders
-        if( x / zoom > modeWidth || ( x + si->Width ) / zoom < 0 || y / zoom > modeHeight || ( y + si->Height ) / zoom < 0 )
+        if( x / zoom > GameOpt.ScreenWidth || ( x + si->Width ) / zoom < 0 || y / zoom > GameOpt.ScreenHeight || ( y + si->Height ) / zoom < 0 )
             continue;
         #endif
 
@@ -5142,10 +5139,10 @@ bool SpriteManager::Render3d( int x, int y, float scale, Animation3d* anim3d, Re
     si->Surf->Height = rt3D.TargetTexture->Height;
     int pivx = ( borders.L < 0 ? -borders.L : 0 );
     int pivy = ( borders.T < 0 ? -borders.T : 0 );
-    borders.L = CLAMP( borders.L, 0, modeWidth );
-    borders.T = CLAMP( borders.T, 0, modeHeight );
-    borders.R = CLAMP( borders.R, 0, modeWidth );
-    borders.B = CLAMP( borders.B, 0, modeHeight );
+    borders.L = CLAMP( borders.L, 0, GameOpt.ScreenWidth );
+    borders.T = CLAMP( borders.T, 0, GameOpt.ScreenHeight );
+    borders.R = CLAMP( borders.R, 0, GameOpt.ScreenWidth );
+    borders.B = CLAMP( borders.B, 0, GameOpt.ScreenHeight );
     si->Width = borders.W() - 1;
     si->Height = borders.H() - 1;
     si->SprRect(
@@ -5227,19 +5224,19 @@ bool SpriteManager::DrawContours()
         } vb[ 6 ] =
         {
             # ifdef FO_D3D
-            { -0.5f, (float) modeHeight - 0.5f, 0.0f, 1.0f, 0.0f, 1.0f },
+            { -0.5f, (float) GameOpt.ScreenHeight - 0.5f, 0.0f, 1.0f, 0.0f, 1.0f },
             { -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f },
-            { (float) modeWidth - 0.5f, (float) modeHeight - 0.5f, 0.0f, 1.0f, 1.0f, 1.0f },
+            { (float) GameOpt.ScreenWidth - 0.5f, (float) GameOpt.ScreenHeight - 0.5f, 0.0f, 1.0f, 1.0f, 1.0f },
             { -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f },
-            { (float) modeWidth - 0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f },
-            { (float) modeWidth - 0.5f, (float) modeHeight - 0.5f, 0.0f, 1.0f, 1.0f, 1.0f },
+            { (float) GameOpt.ScreenWidth - 0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f },
+            { (float) GameOpt.ScreenWidth - 0.5f, (float) GameOpt.ScreenHeight - 0.5f, 0.0f, 1.0f, 1.0f, 1.0f },
             # else
-            { -0.0f, (float) modeHeight, 0.0f, 1.0f, 0.0f, 1.0f },
+            { -0.0f, (float) GameOpt.ScreenHeight, 0.0f, 1.0f, 0.0f, 1.0f },
             { -0.0f, -0.0f, 0.0f, 1.0f, 0.0f, 0.0f },
-            { (float) modeWidth, (float) modeHeight, 0.0f, 1.0f, 1.0f, 1.0f },
+            { (float) GameOpt.ScreenWidth, (float) GameOpt.ScreenHeight, 0.0f, 1.0f, 1.0f, 1.0f },
             { -0.0f, -0.0f, 0.0f, 1.0f, 0.0f, 0.0f },
-            { (float) modeWidth, -0.0f, 0.0f, 1.0f, 1.0f, 0.0f },
-            { (float) modeWidth, (float) modeHeight, 0.0f, 1.0f, 1.0f, 1.0f },
+            { (float) GameOpt.ScreenWidth, -0.0f, 0.0f, 1.0f, 1.0f, 0.0f },
+            { (float) GameOpt.ScreenWidth, (float) GameOpt.ScreenHeight, 0.0f, 1.0f, 1.0f, 1.0f },
             # endif
         };
 
@@ -5322,7 +5319,7 @@ bool SpriteManager::CollectContour( int x, int y, SpriteInfo* si, Sprite* spr )
 
     if( !anim3d )
     {
-        if( borders.L >= modeWidth * GameOpt.SpritesZoom || borders.R < 0 || borders.T >= modeHeight * GameOpt.SpritesZoom || borders.B < 0 )
+        if( borders.L >= GameOpt.ScreenWidth * GameOpt.SpritesZoom || borders.R < 0 || borders.T >= GameOpt.ScreenHeight * GameOpt.SpritesZoom || borders.B < 0 )
             return true;
 
         if( GameOpt.SpritesZoom == 1.0f )
@@ -5375,10 +5372,10 @@ bool SpriteManager::CollectContour( int x, int y, SpriteInfo* si, Sprite* spr )
             old_rt->Release();
             old_ds->Release();
 
-            float w = (float) modeWidth;
-            float h = (float) modeHeight;
-            ws = 1.0f / modeWidth;
-            hs = 1.0f / modeHeight;
+            float w = (float) GameOpt.ScreenWidth;
+            float h = (float) GameOpt.ScreenHeight;
+            ws = 1.0f / GameOpt.ScreenWidth;
+            hs = 1.0f / GameOpt.ScreenHeight;
             tuv = RectF( (float) borders.L / w, (float) borders.T / h, (float) borders.R / w, (float) borders.B / h );
             tuvh = tuv;
             texture = contoursMidTexture;
@@ -5386,7 +5383,7 @@ bool SpriteManager::CollectContour( int x, int y, SpriteInfo* si, Sprite* spr )
     }
     else
     {
-        if( borders.L >= modeWidth || borders.R < 0 || borders.T >= modeHeight || borders.B < 0 )
+        if( borders.L >= GameOpt.ScreenWidth || borders.R < 0 || borders.T >= GameOpt.ScreenHeight || borders.B < 0 )
             return true;
 
         Rect init_borders = borders;
@@ -5394,13 +5391,13 @@ bool SpriteManager::CollectContour( int x, int y, SpriteInfo* si, Sprite* spr )
             borders.L = 1;
         if( borders.T <= 0 )
             borders.T = 1;
-        if( borders.R >= modeWidth )
-            borders.R = modeWidth - 1;
-        if( borders.B >= modeHeight )
-            borders.B = modeHeight - 1;
+        if( borders.R >= GameOpt.ScreenWidth )
+            borders.R = GameOpt.ScreenWidth - 1;
+        if( borders.B >= GameOpt.ScreenHeight )
+            borders.B = GameOpt.ScreenHeight - 1;
 
-        float w = (float) modeWidth;
-        float h = (float) modeHeight;
+        float w = (float) GameOpt.ScreenWidth;
+        float h = (float) GameOpt.ScreenHeight;
         tuv.L = (float) borders.L / w;
         tuv.T = (float) borders.T / h;
         tuv.R = (float) borders.R / w;
@@ -5408,8 +5405,8 @@ bool SpriteManager::CollectContour( int x, int y, SpriteInfo* si, Sprite* spr )
         tuvh.T = (float) init_borders.T / h;
         tuvh.B = (float) init_borders.B / h;
 
-        ws = 0.1f / modeWidth;
-        hs = 0.1f / modeHeight;
+        ws = 0.1f / GameOpt.ScreenWidth;
+        hs = 0.1f / GameOpt.ScreenHeight;
 
         // Render to contours texture
         struct VertexUP
@@ -5555,7 +5552,7 @@ bool SpriteManager::CollectContour( int x, int y, SpriteInfo* si, Sprite* spr )
     RectF    textureuv, sprite_border;
     float    zoom = ( si->Anim3d ? 1.0f : GameOpt.SpritesZoom );
 
-    if( borders.L >= modeWidth * zoom || borders.R < 0 || borders.T >= modeHeight * zoom || borders.B < 0 )
+    if( borders.L >= GameOpt.ScreenWidth * zoom || borders.R < 0 || borders.T >= GameOpt.ScreenHeight * zoom || borders.B < 0 )
         return true;
 
     if( zoom == 1.0f )
@@ -5572,10 +5569,10 @@ bool SpriteManager::CollectContour( int x, int y, SpriteInfo* si, Sprite* spr )
         {
             Rect r = si->Anim3d->GetFullBorders();
             r.L -= 5, r.T -= 5, r.R += 5, r.B += 5;
-            r.L = CLAMP( r.L, -1, modeWidth + 1 );
-            r.T = CLAMP( r.T, -1, modeHeight + 1 );
-            r.R = CLAMP( r.R, -1, modeWidth + 1 );
-            r.B = CLAMP( r.B, -1, modeHeight + 1 );
+            r.L = CLAMP( r.L, -1, GameOpt.ScreenWidth + 1 );
+            r.T = CLAMP( r.T, -1, GameOpt.ScreenHeight + 1 );
+            r.R = CLAMP( r.R, -1, GameOpt.ScreenWidth + 1 );
+            r.B = CLAMP( r.B, -1, GameOpt.ScreenHeight + 1 );
             sprite_border(
                 (float) r.L / texture->SizeData[ 0 ],
                 1.0f - (float) r.T / texture->SizeData[ 1 ],

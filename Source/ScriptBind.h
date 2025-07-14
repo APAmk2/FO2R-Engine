@@ -1059,6 +1059,8 @@ BIND_ASSERT( engine->RegisterGlobalFunction( "bool SaveScreenshot()", asFUNCTION
 BIND_ASSERT( engine->RegisterGlobalFunction( "bool SaveLogFile()", asFUNCTION( BIND_CLASS Global_SaveLogFile ), asCALL_CDECL ) );
 
 BIND_ASSERT( engine->RegisterGlobalFunction( "void ChosenRefreshMap()", asFUNCTION( BIND_CLASS Global_ChosenRefreshMap ), asCALL_CDECL ) );
+BIND_ASSERT( engine->RegisterGlobalFunction( "string@ CustomCall(string& command, string& separator = \" \")", asFUNCTION( BIND_CLASS Global_CustomCall ), asCALL_CDECL ) );
+BIND_ASSERT( engine->RegisterGlobalFunction( "void SetUserConfig(string[]& keyValues)", asFUNCTION( BIND_CLASS Global_SetUserConfig ), asCALL_CDECL ) );
 
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ConsoleActive", &BIND_CLASS ConsoleActive ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __GmapActive", &BIND_CLASS GmapActive ) );
@@ -1556,6 +1558,8 @@ BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourDeadCritters", &
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourScenery", &GameOpt.ShowContourScenery ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __ShowContourWalls", &GameOpt.ShowContourWalls ) );
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __SpritesFiltering", &GameOpt.SpritesFiltering ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "uint8 __SoundVolume", &GameOpt.SoundVolume ) );
+BIND_ASSERT( engine->RegisterGlobalProperty( "uint8 __MusicVolume", &GameOpt.MusicVolume ) );
 #endif
 
 BIND_ASSERT( engine->RegisterGlobalProperty( "bool __MapHexagonal", &GameOpt.MapHexagonal ) );

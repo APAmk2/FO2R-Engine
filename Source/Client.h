@@ -648,6 +648,8 @@ public:
         static void          Global_SetRainAnimation( ScriptString* fall_anim_name, ScriptString* drop_anim_name );
         static bool          Global_SaveScreenshot();
         static bool          Global_SaveLogFile();
+		static ScriptString* Global_CustomCall( ScriptString& command, ScriptString& separator );
+		static void			 Global_SetUserConfig( ScriptArray& key_values );
 
         static bool&         ConsoleActive;
         static bool&         GmapActive, & GmapWait;

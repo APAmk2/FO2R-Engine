@@ -1009,6 +1009,8 @@ struct BindClass
     static void Global_RefreshMap()             {}
     static void Global_SaveScreenshot()         {}
     static void Global_SaveLogFile()            {}
+	static void Global_CustomCall()				{}
+	static void Global_SetUserConfig()			{}
 
     static int  ConsoleActive;
     static int  GmapActive, GmapWait;
@@ -1458,6 +1460,8 @@ struct GameOptions
     int SplitTilesCollection;
 	
 	int MapperAutosave;
-	bool SpritesFiltering;
-	bool NoobCursor;
+	int SpritesFiltering;
+	int NoobCursor;
+	int SoundVolume;
+	int MusicVolume;
 } GameOpt;

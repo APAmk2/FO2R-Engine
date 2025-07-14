@@ -1722,7 +1722,7 @@ bool HexManager::IsVisible( uint spr_id, int ox, int oy )
     int bottom = oy + si->OffsY + SCROLL_OY;
     int left = ox + si->OffsX - si->Width / 2 - SCROLL_OX;
     int right = ox + si->OffsX + si->Width / 2 + SCROLL_OX;
-    return !( top > MODE_HEIGHT * GameOpt.SpritesZoom || bottom < 0 || left > MODE_WIDTH * GameOpt.SpritesZoom || right < 0 );
+    return !( top > GameOpt.ScreenHeight * GameOpt.SpritesZoom || bottom < 0 || left > GameOpt.ScreenWidth * GameOpt.SpritesZoom || right < 0 );
 }
 
 bool HexManager::ProcessHexBorders( uint spr_id, int ox, int oy, bool resize_map )
@@ -1860,7 +1860,7 @@ void HexManager::InitView( int cx, int cy )
         int y2 = 0;
         int vpos;
         int hx, hy;
-        int wx = (int) ( MODE_WIDTH * GameOpt.SpritesZoom );
+        int wx = (int) ( GameOpt.ScreenWidth * GameOpt.SpritesZoom );
 
         for( int j = 0; j < hVisible; j++ )
         {
@@ -1900,7 +1900,7 @@ void HexManager::InitView( int cx, int cy )
         int xa = -HEX_W * wRight;
         int xb = -HEX_W * wRight - HEX_W / 2;
         int y = -HEX_LINE_H * hTop;
-        int wx = (int) ( MODE_WIDTH * GameOpt.SpritesZoom );
+        int wx = (int) ( GameOpt.ScreenWidth * GameOpt.SpritesZoom );
         int hx, hy;
 
         // Initialize field
@@ -1973,7 +1973,7 @@ void HexManager::ChangeZoom( int zoom )
     if( zoom || GameOpt.SpritesZoom < 1.0f )
     {
         float old_zoom = GameOpt.SpritesZoom;
-        float w = (float) ( MODE_WIDTH / HEX_W + ( ( MODE_WIDTH % HEX_W ) ? 1 : 0 ) );
+        float w = (float) ( GameOpt.ScreenWidth / HEX_W + ( ( GameOpt.ScreenWidth % HEX_W ) ? 1 : 0 ) );
         GameOpt.SpritesZoom = ( w * GameOpt.SpritesZoom + ( zoom >= 0 ? 2.0f : -2.0f ) ) / w;
 
         if( GameOpt.SpritesZoom < max( GameOpt.SpritesZoomMin, MIN_ZOOM ) || GameOpt.SpritesZoom > min( GameOpt.SpritesZoomMax, MAX_ZOOM ) )
@@ -4117,6 +4117,12 @@ int* HexManager::GetMapDayTime()
 uchar* HexManager::GetMapDayColor()
 {
     return dayColor;
+}
+
+void HexManager::OnResolutionChanged()
+{
+    ResizeView();
+    RefreshMap();
 }
 
 #ifdef FONLINE_MAPPER

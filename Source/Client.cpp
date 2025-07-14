@@ -240,10 +240,9 @@ bool FOClient::Init()
 
     // Check password in config and command line
     char      pass[ MAX_FOTEXT ];
-    IniParser cfg;     // Also used below
-    cfg.LoadFile( GetConfigFileName(), PT_ROOT );
-    cfg.GetStr( CLIENT_CONFIG_APP, "UserPass", "", pass );
-    char* cmd_line_pass = Str::Substring( CommandLine, "-UserPass" );
+    IniParser& cfg = IniParser::GetClientConfig();     // Also used below
+    cfg.GetStr( "UserPass", "", pass );
+    char*      cmd_line_pass = Str::Substring( CommandLine, "-UserPass" );
     if( cmd_line_pass )
         sscanf( cmd_line_pass + Str::Length( "-UserPass" ) + 1, "%s", pass );
     Password = pass;
@@ -315,14 +314,14 @@ bool FOClient::Init()
 
     // Sound manager
     SndMngr.Init();
-    SndMngr.SetSoundVolume( cfg.GetInt( CLIENT_CONFIG_APP, "SoundVolume", 100 ) );
-    SndMngr.SetMusicVolume( cfg.GetInt( CLIENT_CONFIG_APP, "MusicVolume", 100 ) );
+    GameOpt.SoundVolume = cfg.GetInt( "SoundVolume", 100 );
+    GameOpt.MusicVolume = cfg.GetInt( "MusicVolume", 100 );
 
     UID_PREPARE_UID4_3;
 
     // Language Packs
     char lang_name[ MAX_FOTEXT ];
-    cfg.GetStr( CLIENT_CONFIG_APP, "Language", DEFAULT_LANGUAGE, lang_name );
+    cfg.GetStr( "Language", DEFAULT_LANGUAGE, lang_name );
     if( Str::Length( lang_name ) != 4 )
         Str::Copy( lang_name, DEFAULT_LANGUAGE );
     Str::Lower( lang_name );
@@ -434,7 +433,7 @@ bool FOClient::Init()
     SetGameColor( COLOR_IFACE );
     #ifdef FO_D3D
     if( GameOpt.FullScreen )
-        SetCurPos( MODE_WIDTH / 2, MODE_HEIGHT / 2 );
+        SetCurPos( GameOpt.ScreenWidth / 2, GameOpt.ScreenHeight / 2 );
     #endif
     ScreenOffsX = 0;
     ScreenOffsY = 0;
@@ -942,9 +941,8 @@ void FOClient::ScreenQuake( int noise, uint time )
 
 void FOClient::ProcessScreenEffectFading()
 {
-    static PointVec six_points;
-    if( six_points.empty() )
-        SprMngr.PrepareSquare( six_points, Rect( 0, 0, MODE_WIDTH, MODE_HEIGHT ), 0 );
+    PointVec full_screen_quad;
+    SprMngr.PrepareSquare( full_screen_quad, Rect( 0, 0, GameOpt.ScreenWidth, GameOpt.ScreenHeight ), 0 );
 
     for( auto it = ScreenEffects.begin(); it != ScreenEffects.end();)
     {
@@ -969,9 +967,9 @@ void FOClient::ProcessScreenEffectFading()
 
             uint color = COLOR_ARGB( res[ 3 ], res[ 2 ], res[ 1 ], res[ 0 ] );
             for( int i = 0; i < 6; i++ )
-                six_points[ i ].PointColor = color;
+				full_screen_quad[ i ].PointColor = color;
 
-            SprMngr.DrawPoints( six_points, PRIMITIVE_TRIANGLELIST );
+            SprMngr.DrawPoints(full_screen_quad, PRIMITIVE_TRIANGLELIST );
         }
         it++;
     }
@@ -1013,7 +1011,7 @@ void FOClient::ProcessScreenEffectMirror()
                 ScreenMirrorEndTick=Timer::FastTick()+1000;
                 ScreenMirrorStart=false;
 
-                if(FAILED(SprMngr.GetDevice()->CreateTexture(MODE_WIDTH,MODE_HEIGHT,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,&ScreenMirrorTexture))) return;
+                if(FAILED(SprMngr.GetDevice()->CreateTexture(GameOpt.ScreenWidth,GameOpt.ScreenHeight,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,&ScreenMirrorTexture))) return;
                 LPDIRECT3DSURFACE8 mirror=NULL;
                 LPDIRECT3DSURFACE8 back_buf=NULL;
                 if(SUCCEEDED(ScreenMirrorTexture->GetSurfaceLevel(0,&mirror))
@@ -1033,7 +1031,7 @@ void FOClient::ProcessScreenEffectMirror()
                 {
                         MYVERTEX vb_[6];
                         vb_[0].x=0+ScreenMirrorX-0.5f;
-                        vb_[0].y=MODE_HEIGHT+ScreenMirrorY-0.5f;
+                        vb_[0].y=GameOpt.ScreenHeight+ScreenMirrorY-0.5f;
                         vb_[0].tu=0.0f;
                         vb_[0].tv=1.0f;
                         vb_[0].Diffuse=0x7F7F7F7F;
@@ -1049,18 +1047,18 @@ void FOClient::ProcessScreenEffectMirror()
                         vb_[3].tv=0.0f;
                         vb_[3].Diffuse=0x7F7F7F7F;
 
-                        vb_[2].x=MODE_WIDTH+ScreenMirrorX-0.5f;
-                        vb_[2].y=MODE_HEIGHT+ScreenMirrorY-0.5f;
+                        vb_[2].x=GameOpt.ScreenWidth+ScreenMirrorX-0.5f;
+                        vb_[2].y=GameOpt.ScreenHeight+ScreenMirrorY-0.5f;
                         vb_[2].tu=1.0f;
                         vb_[2].tv=1.0f;
                         vb_[2].Diffuse=0x7F7F7F7F;
-                        vb_[5].x=MODE_WIDTH+ScreenMirrorX-0.5f;
-                        vb_[5].y=MODE_HEIGHT+ScreenMirrorY-0.5f;
+                        vb_[5].x=GameOpt.ScreenWidth+ScreenMirrorX-0.5f;
+                        vb_[5].y=GameOpt.ScreenHeight+ScreenMirrorY-0.5f;
                         vb_[5].tu=1.0f;
                         vb_[5].tv=1.0f;
                         vb_[5].Diffuse=0x7F7F7F7F;
 
-                        vb_[4].x=MODE_WIDTH+ScreenMirrorX-0.5f;
+                        vb_[4].x=GameOpt.ScreenWidth+ScreenMirrorX-0.5f;
                         vb_[4].y=0+ScreenMirrorY-0.5f;
                         vb_[4].tu=1.0f;
                         vb_[4].tv=0.0f;
@@ -1260,14 +1258,14 @@ void FOClient::ParseKeyboard()
             case DIK_F11:
                 if( !GameOpt.FullScreen )
                 {
-                    MainWindow->size_range( MODE_WIDTH, MODE_HEIGHT );
+                    MainWindow->size_range( GameOpt.ScreenWidth, GameOpt.ScreenHeight );
                     MainWindow->fullscreen();
                     GameOpt.FullScreen = true;
                 }
                 else
                 {
                     MainWindow->fullscreen_off();
-                    MainWindow->size_range( MODE_WIDTH, MODE_HEIGHT, MODE_WIDTH, MODE_HEIGHT );
+                    MainWindow->size_range( GameOpt.ScreenWidth, GameOpt.ScreenHeight, GameOpt.ScreenWidth, GameOpt.ScreenHeight );
                     GameOpt.FullScreen = false;
                 }
                 #ifndef FO_D3D
@@ -1384,9 +1382,9 @@ void FOClient::ParseKeyboard()
                 if( ConsoleActive )
                     break;
                 if( Keyb::CtrlDwn )
-                    SndMngr.SetSoundVolume( SndMngr.GetSoundVolume() + 2 );
+                    GameOpt.SoundVolume = CLAMP(GameOpt.SoundVolume + 2, 0, 100);
                 else if( Keyb::ShiftDwn )
-                    SndMngr.SetMusicVolume( SndMngr.GetMusicVolume() + 2 );
+					GameOpt.MusicVolume = CLAMP(GameOpt.MusicVolume + 2, 0, 100);
                 else if( Keyb::AltDwn && GameOpt.FixedFPS < 10000 )
                     GameOpt.FixedFPS++;
                 break;
@@ -1395,9 +1393,9 @@ void FOClient::ParseKeyboard()
                 if( ConsoleActive )
                     break;
                 if( Keyb::CtrlDwn )
-                    SndMngr.SetSoundVolume( SndMngr.GetSoundVolume() - 2 );
+					GameOpt.SoundVolume = CLAMP(GameOpt.SoundVolume - 2, 0, 100);
                 else if( Keyb::ShiftDwn )
-                    SndMngr.SetMusicVolume( SndMngr.GetMusicVolume() - 2 );
+					GameOpt.MusicVolume = CLAMP(GameOpt.MusicVolume - 2, 0, 100);
                 else if( Keyb::AltDwn && GameOpt.FixedFPS > -10000 )
                     GameOpt.FixedFPS--;
                 break;
@@ -1518,10 +1516,10 @@ void FOClient::ParseMouse()
     GameOpt.MouseX = mx - MainWindow->x();
     GameOpt.MouseY = my - MainWindow->y();
     #endif
-    GameOpt.MouseX = GameOpt.MouseX * MODE_WIDTH / MainWindow->w();
-    GameOpt.MouseY = GameOpt.MouseY * MODE_HEIGHT / MainWindow->h();
-    GameOpt.MouseX = CLAMP( GameOpt.MouseX, 0, MODE_WIDTH - 1 );
-    GameOpt.MouseY = CLAMP( GameOpt.MouseY, 0, MODE_HEIGHT - 1 );
+    GameOpt.MouseX = GameOpt.MouseX * GameOpt.ScreenWidth / MainWindow->w();
+    GameOpt.MouseY = GameOpt.MouseY * GameOpt.ScreenHeight / MainWindow->h();
+    GameOpt.MouseX = CLAMP( GameOpt.MouseX, 0, GameOpt.ScreenWidth - 1 );
+    GameOpt.MouseY = CLAMP( GameOpt.MouseY, 0, GameOpt.ScreenHeight - 1 );
 
     // Stop processing if window not active
     if( !MainWindow->Focused )
@@ -6791,12 +6789,11 @@ void FOClient::Net_OnMsgData()
     {
         WriteLogF( _FUNC_, " - Received text in another language, set as default.\n" );
         CurLang.Name = lang;
-        IniParser cfg;
-        cfg.LoadFile( GetConfigFileName(), PT_ROOT );
+		IniParser& cfg = IniParser::GetClientConfig();
         if( cfg.IsLoaded() )
         {
-            cfg.SetStr( CLIENT_CONFIG_APP, "Language", CurLang.NameStr );
-            cfg.SaveFile( GetConfigFileName(), PT_ROOT );
+            cfg.SetStr( "Language", CurLang.NameStr );
+            cfg.SaveFile( IniParser::GetConfigFileName(), PT_ROOT );
         }
     }
 
@@ -8612,7 +8609,7 @@ void FOClient::ProcessMouseScroll()
     if( IsLMenu() || !GameOpt.MouseScroll )
         return;
 
-    if( GameOpt.MouseX >= MODE_WIDTH - 1 )
+    if( GameOpt.MouseX >= GameOpt.ScreenWidth - 1 )
         GameOpt.ScrollMouseRight = true;
     else
         GameOpt.ScrollMouseRight = false;
@@ -8622,7 +8619,7 @@ void FOClient::ProcessMouseScroll()
     else
         GameOpt.ScrollMouseLeft = false;
 
-    if( GameOpt.MouseY >= MODE_HEIGHT - 1 )
+    if( GameOpt.MouseY >= GameOpt.ScreenHeight - 1 )
         GameOpt.ScrollMouseDown = true;
     else
         GameOpt.ScrollMouseDown = false;
@@ -9434,13 +9431,13 @@ void FOClient::RenderVideo()
     SprMngr.PopRenderTarget();
 
     // Render to window
-    float mw = (float) MODE_WIDTH;
-    float mh = (float) MODE_HEIGHT;
+    float mw = (float) GameOpt.ScreenWidth;
+    float mh = (float) GameOpt.ScreenHeight;
     float k = min( mw / w, mh / h );
     w = (uint) ( (float) w * k );
     h = (uint) ( (float) h * k );
-    int x = ( MODE_WIDTH - w ) / 2;
-    int y = ( MODE_HEIGHT - h ) / 2;
+    int x = ( GameOpt.ScreenWidth - w ) / 2;
+    int y = ( GameOpt.ScreenHeight - h ) / 2;
     if( SprMngr.BeginScene( COLOR_XRGB( 0, 0, 0 ) ) )
     {
         Rect r = Rect( x, y, x + w, y + h );
@@ -12181,6 +12178,187 @@ bool FOClient::SScriptFunc::Global_SaveScreenshot()
 bool FOClient::SScriptFunc::Global_SaveLogFile()
 {
     return ( Self->SaveLogFile() );
+}
+
+ScriptString* FOClient::SScriptFunc::Global_CustomCall( ScriptString& command, ScriptString& separator )
+{
+    // Parse command
+    vector< string > args;
+    stringstream     ss( command.c_std_str() );
+    if( separator.length() > 0 )
+    {
+        string arg;
+        while( getline( ss, arg, *separator.c_str() ) )
+            args.push_back( arg );
+    }
+    else
+    {
+        args.push_back( command.c_std_str() );
+    }
+    if( args.size() < 1 )
+        SCRIPT_ERROR_RX( "Empty custom call command.", new ScriptString( "" ) );
+
+    // Execute
+    string cmd = args[ 0 ];
+    if( cmd == "GetPassword" )
+    {
+        return new ScriptString( Self->Password );
+    }
+    else if( cmd == "SaveLogFile" )
+    {
+        if( Self->SaveLogFile() )
+            return new ScriptString( "OK" );
+    }
+    else if( cmd == "SaveScreenshot" )
+    {
+        if( Self->SaveScreenshot() )
+            return new ScriptString( "OK" );
+    }
+    else if( cmd == "SwitchIntVisible" )
+    {
+        Self->IntVisible = !Self->IntVisible;
+        Self->MessBoxGenerate();
+    }
+    else if( cmd == "SwitchIntAddMess" )
+    {
+        Self->IntAddMess = !Self->IntAddMess;
+        Self->MessBoxGenerate();
+    }
+    else if( cmd == "SwitchShowTrack" )
+    {
+        Self->HexMngr.SwitchShowTrack();
+    }
+    else if( cmd == "SwitchShowHex" )
+    {
+        Self->HexMngr.SwitchShowHex();
+    }
+    else if( cmd == "SetFullscreen" && args.size() >= 2)
+    {
+		bool newVal = Str::Compare(args[1].c_str(), "True");
+
+        if(newVal)
+        {
+			MainWindow->size_range(GameOpt.ScreenWidth, GameOpt.ScreenHeight);
+			MainWindow->fullscreen();
+			GameOpt.FullScreen = true;
+        }
+        else
+        {
+			MainWindow->fullscreen_off();
+			MainWindow->size_range(GameOpt.ScreenWidth, GameOpt.ScreenHeight, GameOpt.ScreenWidth, GameOpt.ScreenHeight);
+			GameOpt.FullScreen = false;
+        }
+        //SprMngr.RefreshViewport();
+    }
+    else if( cmd == "SwitchLookBorders" )
+    {
+        Self->DrawLookBorders = !Self->DrawLookBorders;
+        Self->RebuildLookBorders = true;
+    }
+    else if( cmd == "SwitchShootBorders" )
+    {
+        Self->DrawShootBorders = !Self->DrawShootBorders;
+        Self->RebuildLookBorders = true;
+    }
+    else if( cmd == "SwitchSingleplayerPause" )
+    {
+        SingleplayerData.Pause = !SingleplayerData.Pause;
+    }
+    else if( cmd == "SetCursorPos" )
+    {
+        if( Self->HexMngr.IsMapLoaded() )
+            Self->HexMngr.SetCursorPos( GameOpt.MouseX, GameOpt.MouseY, Keyb::CtrlDwn, true );
+    }
+    else if( cmd == "NetDisconnect" )
+    {
+        Self->NetDisconnect();
+    }
+    else if( cmd == "TryExit" )
+    {
+        Self->TryExit();
+    }
+    else if( cmd == "Version" )
+    {
+        char buf[ 1024 ];
+        return new ScriptString( Str::Format( buf, "%04X", CLIENT_VERSION) );
+    }
+    else if( cmd == "BytesSend" )
+    {
+        return new ScriptString( Str::ItoA( Self->BytesSend ) );
+    }
+    else if( cmd == "BytesReceive" )
+    {
+        return new ScriptString( Str::ItoA( Self->BytesReceive ) );
+    }
+    else if( cmd == "GetLanguage" )
+    {
+        return new ScriptString( Self->CurLang.NameStr );
+    }
+	#pragma MESSAGE("TODO: SetLanguage Custom Call - APAmk2")
+    /*else if( cmd == "SetLanguage" && args.size() >= 2 )
+    {
+        if( args[ 1 ].length() == 4 )
+            Self->CurLang.LoadFromCache( args[ 1 ].c_str() );
+    }*/
+	#pragma MESSAGE("TODO: SetResolution Custom Call - APAmk2")
+    /*else if( cmd == "SetResolution" && args.size() >= 3 )
+    {
+        int w = Str::AtoI( args[ 1 ].c_str() );
+        int h = Str::AtoI( args[ 2 ].c_str() );
+        int diff_w = w - GameOpt.ScreenWidth;
+        int diff_h = h - GameOpt.ScreenHeight;
+
+        GameOpt.ScreenWidth = w;
+        GameOpt.ScreenHeight = h;
+		MainWindow->size( w, h );
+
+		MainWindow->position(Fl::x() - diff_w / 2, Fl::y() - diff_h / 2 );
+
+        SprMngr.OnResolutionChanged();
+        if( Self->HexMngr.IsMapLoaded() )
+            Self->HexMngr.OnResolutionChanged();
+    }*/
+	else if( cmd == "GetAllResolutions" )
+    {
+		char allResolutions[MAX_FOPATH] = "";
+	
+		#ifdef FO_WINDOWS
+		DEVMODE dm;
+		int index = 0;
+		while (0 != EnumDisplaySettings(NULL, index++, &dm)) 
+		{
+			Str::Append(allResolutions, Str::ItoA(dm.dmPelsWidth));
+			Str::Append(allResolutions, ":");
+			Str::Append(allResolutions, Str::ItoA(dm.dmPelsHeight));
+			Str::Append(allResolutions, ";");
+		}
+		#endif
+
+        return new ScriptString(allResolutions);
+    }
+    else
+    {
+        SCRIPT_ERROR_RX( "Invalid custom call command.", new ScriptString( "" ) );
+    }
+
+    return new ScriptString( "" );
+}
+
+void FOClient::SScriptFunc::Global_SetUserConfig( ScriptArray& key_values )
+{
+    FileManager cfg_user;
+    for( int i = 0, j = (int) key_values.GetSize(); i < j - 1; i += 2 )
+    {
+        ScriptString& key = *(ScriptString*) key_values.At( i );
+        ScriptString& value = *(ScriptString*) key_values.At( i + 1 );
+        cfg_user.SetStr( key.c_str() );
+        cfg_user.SetStr( " = " );
+        cfg_user.SetStr( value.c_str() );
+        cfg_user.SetStr( "\n" );
+    }
+    char cfg_name[ MAX_FOPATH ];
+    Str::Format( cfg_name, "%s", IniParser::GetConfigFileName() );
+    cfg_user.SaveOutBufToFile( cfg_name, PT_ROOT );
 }
 
 bool&  FOClient::SScriptFunc::ConsoleActive = FOClient::ConsoleActive;

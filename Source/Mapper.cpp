@@ -169,15 +169,10 @@ bool FOMapper::Init()
     FileManager::SetDataPath( GameOpt.ServerPath.c_str() );
 
     // Language Packs
-    IniParser cfg_mapper;
-    cfg_mapper.LoadFile( GetConfigFileName(), PT_MAPPER_ROOT );
-    char      server_cfg_name[ MAX_FOPATH ];
-    cfg_mapper.GetStr( "ServerName", "FOnlineServer", server_cfg_name );
-    Str::Append( server_cfg_name, ".cfg" );
+    IniParser& cfg_mapper = IniParser::GetMapperConfig();
+    IniParser& cfg_server = IniParser::GetServerConfig();
 
-    IniParser cfg_server;
-    cfg_server.LoadFile( server_cfg_name, PT_SERVER_ROOT );
-    char      lang_name[ MAX_FOTEXT ];
+    char       lang_name[ MAX_FOTEXT ];
     cfg_server.GetStr( "Language_0", DEFAULT_LANGUAGE, lang_name );
     if( strlen( lang_name ) != 4 )
         Str::Copy( lang_name, DEFAULT_LANGUAGE );
@@ -361,8 +356,7 @@ int FOMapper::InitIface()
     IniParser& ini = IfaceIni;
     char       int_file[ 256 ];
 
-    IniParser  cfg;
-    cfg.LoadFile( GetConfigFileName(), PT_MAPPER_ROOT );
+	IniParser&  cfg = IniParser::GetMapperConfig();
     cfg.GetStr( "MapperInterface", CFG_DEF_INT_FILE, int_file );
 
     if( !ini.LoadFile( int_file, PT_MAPPER_DATA ) )
@@ -377,9 +371,9 @@ int FOMapper::InitIface()
 
     IfaceLoadRect( IntWMain, "IntMain" );
     if( IntX == -1 )
-        IntX = ( MODE_WIDTH - IntWMain.W() ) / 2;
+        IntX = ( GameOpt.ScreenWidth - IntWMain.W() ) / 2;
     if( IntY == -1 )
-        IntY = MODE_HEIGHT - IntWMain.H();
+        IntY = GameOpt.ScreenHeight - IntWMain.H();
 
     IfaceLoadRect( IntWWork, "IntWork" );
     IfaceLoadRect( IntWHint, "IntHint" );
@@ -860,14 +854,14 @@ void FOMapper::ParseKeyboard()
             case DIK_F11:
                 if( !GameOpt.FullScreen )
                 {
-                    MainWindow->size_range( MODE_WIDTH, MODE_HEIGHT );
+                    MainWindow->size_range( GameOpt.ScreenWidth, GameOpt.ScreenHeight );
                     MainWindow->fullscreen();
                     GameOpt.FullScreen = true;
                 }
                 else
                 {
                     MainWindow->fullscreen_off();
-                    MainWindow->size_range( MODE_WIDTH, MODE_HEIGHT, MODE_WIDTH, MODE_HEIGHT );
+                    MainWindow->size_range( GameOpt.ScreenWidth, GameOpt.ScreenHeight, GameOpt.ScreenWidth, GameOpt.ScreenHeight );
                     GameOpt.FullScreen = false;
                 }
                 #ifndef FO_D3D
@@ -1019,7 +1013,7 @@ void FOMapper::ParseKeyboard()
             if( !GameOpt.FullScreen )
             {
                 #ifndef FO_WINDOWS
-                MainWindow->size_range( MODE_WIDTH, MODE_HEIGHT );
+                MainWindow->size_range( GameOpt.ScreenWidth, GameOpt.ScreenHeight );
                 #endif
                 MainWindow->fullscreen();
                 GameOpt.FullScreen = true;
@@ -1028,7 +1022,7 @@ void FOMapper::ParseKeyboard()
             {
                 MainWindow->fullscreen_off();
                 #ifndef FO_WINDOWS
-                MainWindow->size_range( MODE_WIDTH, MODE_HEIGHT, MODE_WIDTH, MODE_HEIGHT );
+                MainWindow->size_range( GameOpt.ScreenWidth, GameOpt.ScreenHeight, GameOpt.ScreenWidth, GameOpt.ScreenHeight );
                 #endif
                 GameOpt.FullScreen = false;
             }
@@ -1115,8 +1109,8 @@ void FOMapper::ParseMouse()
     GameOpt.MouseX = mx - MainWindow->x();
     GameOpt.MouseY = my - MainWindow->y();
     #endif
-    GameOpt.MouseX = CLAMP( GameOpt.MouseX, 0, MODE_WIDTH - 1 );
-    GameOpt.MouseY = CLAMP( GameOpt.MouseY, 0, MODE_HEIGHT - 1 );
+    GameOpt.MouseX = CLAMP( GameOpt.MouseX, 0, GameOpt.ScreenWidth - 1 );
+    GameOpt.MouseY = CLAMP( GameOpt.MouseY, 0, GameOpt.ScreenHeight - 1 );
 
     // Stop processing if window not active
     if( !MainWindow->Focused )
@@ -1151,7 +1145,7 @@ void FOMapper::ParseMouse()
     // Mouse Scroll
     if( GameOpt.MouseScroll )
     {
-        if( GameOpt.MouseX >= MODE_WIDTH - 1 )
+        if( GameOpt.MouseX >= GameOpt.ScreenWidth - 1 )
             GameOpt.ScrollMouseRight = true;
         else
             GameOpt.ScrollMouseRight = false;
@@ -1161,7 +1155,7 @@ void FOMapper::ParseMouse()
         else
             GameOpt.ScrollMouseLeft = false;
 
-        if( GameOpt.MouseY >= MODE_HEIGHT - 1 )
+        if( GameOpt.MouseY >= GameOpt.ScreenHeight - 1 )
             GameOpt.ScrollMouseDown = true;
         else
             GameOpt.ScrollMouseDown = false;
@@ -2024,7 +2018,7 @@ void FOMapper::IntDraw()
 
             uint    color = ( TabsActive[ SubTabsActiveTab ] == &stab ? COLOR_TEXT_WHITE : COLOR_TEXT );
             Rect    r = Rect( SubTabsRect.L + SubTabsX + 5, SubTabsRect.T + SubTabsY + posy,
-                              SubTabsRect.L + SubTabsX + 5 + MODE_WIDTH, SubTabsRect.T + SubTabsY + posy + line_height - 1 );
+                              SubTabsRect.L + SubTabsX + 5 + GameOpt.ScreenWidth, SubTabsRect.T + SubTabsY + posy + line_height - 1 );
             if( IsCurInRect( r ) )
                 color = COLOR_TEXT_DWHITE;
 
@@ -2049,7 +2043,7 @@ void FOMapper::IntDraw()
         ushort hx, hy;
         if( HexMngr.GetHexPixel( GameOpt.MouseX, GameOpt.MouseY, hx, hy ) )
             hex_thru = true;
-        SprMngr.DrawStr( Rect( MODE_WIDTH - 100, 0, MODE_WIDTH, MODE_HEIGHT ),
+        SprMngr.DrawStr( Rect( GameOpt.ScreenWidth - 100, 0, GameOpt.ScreenWidth, GameOpt.ScreenHeight ),
                          Str::FormatBuf(
                              "Map '%s'\n"
                              "Time %u : %u\n"
@@ -2065,7 +2059,7 @@ void FOMapper::IntDraw()
                              GameOpt.ScrollCheck ? "Scroll check" : "" ),
                          FT_NOBREAK_LINE );
 		
-		SprMngr.DrawStr(Rect(GameOpt.MouseX + 30, GameOpt.MouseY, MODE_WIDTH, MODE_HEIGHT),
+		SprMngr.DrawStr(Rect(GameOpt.MouseX + 30, GameOpt.MouseY, GameOpt.ScreenWidth, GameOpt.ScreenHeight),
 			Str::FormatBuf("%d:%d\n", hex_thru ? hx : -1, hex_thru ? hy : -1), FT_NOBREAK_LINE, COLOR_XRGB(0xF8, 0xF9, 0x93));
     }
 
@@ -2082,7 +2076,7 @@ void FOMapper::IntDraw()
 		if (alpha > 255)
 			alpha = 255;
 
-		SprMngr.DrawStr(Rect(IntX, IntY - SaveLogoHeight, MODE_WIDTH, MODE_HEIGHT), "Saved...", FT_NOBREAK_LINE, COLOR_ARGB(alpha, 0xF8, 0xF9, 0x93), FONT_BIG);
+		SprMngr.DrawStr(Rect(IntX, IntY - SaveLogoHeight, GameOpt.ScreenWidth, GameOpt.ScreenHeight), "Saved...", FT_NOBREAK_LINE, COLOR_ARGB(alpha, 0xF8, 0xF9, 0x93), FONT_BIG);
 	}
 }
 
@@ -3477,12 +3471,12 @@ void FOMapper::IntSetMode( int mode )
         SubTabsY += IntY - SubTabsRect.H();
         if( SubTabsX < 0 )
             SubTabsX = 0;
-        if( SubTabsX + SubTabsRect.W() > MODE_WIDTH )
-            SubTabsX -= SubTabsX + SubTabsRect.W() - MODE_WIDTH;
+        if( SubTabsX + SubTabsRect.W() > GameOpt.ScreenWidth )
+            SubTabsX -= SubTabsX + SubTabsRect.W() - GameOpt.ScreenWidth;
         if( SubTabsY < 0 )
             SubTabsY = 0;
-        if( SubTabsY + SubTabsRect.H() > MODE_HEIGHT )
-            SubTabsY -= SubTabsY + SubTabsRect.H() - MODE_HEIGHT;
+        if( SubTabsY + SubTabsRect.H() > GameOpt.ScreenHeight )
+            SubTabsY -= SubTabsY + SubTabsRect.H() - GameOpt.ScreenHeight;
 
         return;
     }
@@ -4713,13 +4707,13 @@ bool FOMapper::GetCurHex( ushort& hx, ushort& hy, bool ignore_interface )
 void FOMapper::ConsoleDraw()
 {
     if( ConsoleEdit )
-        SprMngr.DrawSprite( ConsolePic, IntX + ConsolePicX, ( IntVisible ? IntY : MODE_HEIGHT ) + ConsolePicY );
+        SprMngr.DrawSprite( ConsolePic, IntX + ConsolePicX, ( IntVisible ? IntY : GameOpt.ScreenHeight ) + ConsolePicY );
 
     if( ConsoleEdit )
     {
         char* buf = (char*) Str::FormatBuf( "%s", ConsoleStr.c_str() );
         Str::Insert( &buf[ ConsoleCur ], Timer::FastTick() % 800 < 400 ? "!" : "." );
-        SprMngr.DrawStr( Rect( IntX + ConsoleTextX, ( IntVisible ? IntY : MODE_HEIGHT ) + ConsoleTextY, MODE_WIDTH, MODE_HEIGHT ), buf, FT_NOBREAK );
+        SprMngr.DrawStr( Rect( IntX + ConsoleTextX, ( IntVisible ? IntY : GameOpt.ScreenHeight ) + ConsoleTextY, GameOpt.ScreenWidth, GameOpt.ScreenHeight ), buf, FT_NOBREAK );
     }
 }
 

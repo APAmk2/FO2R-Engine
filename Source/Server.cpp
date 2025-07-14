@@ -233,8 +233,7 @@ void FOServer::GetAccesses( StrVec& client, StrVec& tester, StrVec& moder, StrVe
     moder.clear();
     admin.clear();
     admin_names.clear();
-    IniParser cfg;
-    cfg.LoadFile( GetConfigFileName(), PT_SERVER_ROOT );
+	IniParser& cfg = IniParser::GetServerConfig();
     if( cfg.IsLoaded() )
     {
         char buf[ MAX_FOTEXT ];
@@ -3383,8 +3382,7 @@ bool FOServer::InitReal()
 {
     FileManager::InitDataFiles( DIR_SLASH_SD );
 
-    IniParser cfg;
-    cfg.LoadFile( GetConfigFileName(), PT_SERVER_ROOT );
+	IniParser& cfg = IniParser::GetServerConfig();
 
     WriteLog( "***   Starting initialization   ****\n" );
     /*
@@ -3842,8 +3840,7 @@ bool FOServer::InitLangPacks( LangPackVec& lang_packs )
 {
     WriteLog( "Loading language packs...\n" );
 
-    IniParser cfg;
-    cfg.LoadFile( GetConfigFileName(), PT_SERVER_ROOT );
+	IniParser& cfg = IniParser::GetServerConfig();
     uint      cur_lang = 0;
 
     while( true )

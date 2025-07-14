@@ -121,26 +121,6 @@ void SoundManager::ClearSounds()
     soundsActive.clear();
 }
 
-int SoundManager::GetSoundVolume()
-{
-    return soundVolume;
-}
-
-int SoundManager::GetMusicVolume()
-{
-    return musicVolume;
-}
-
-void SoundManager::SetSoundVolume( int volume )
-{
-    soundVolume = CLAMP( volume, 0, 100 );
-}
-
-void SoundManager::SetMusicVolume( int volume )
-{
-    musicVolume = CLAMP( volume, 0, 100 );
-}
-
 bool SoundManager::ProcessSound( Sound* sound, uchar* output, uint outputSamples )
 {
     // Playing
@@ -181,7 +161,7 @@ bool SoundManager::ProcessSound( Sound* sound, uchar* output, uint outputSamples
             Streaming( sound );
 
         // Volume
-        int volume = ( sound->IsMusic ? musicVolume : soundVolume );
+        int volume = ( sound->IsMusic ? GameOpt.MusicVolume : GameOpt.SoundVolume );
         if( volume < 100 )
         {
             for( uint i = 0, j = outputSamples * sound->Channels; i < j; i++ )
@@ -583,7 +563,7 @@ bool SoundManager::StreamingOGG( Sound* sound )
 
 bool SoundManager::PlaySound( const char* name )
 {
-    if( !isActive || !GetSoundVolume() )
+    if( !isActive || !GameOpt.SoundVolume )
         return true;
     Sound* sound = Load( name, PT_SND_SFX );
     if( !sound )
@@ -594,7 +574,7 @@ bool SoundManager::PlaySound( const char* name )
 
 bool SoundManager::PlaySoundType( uchar sound_type, uchar sound_type_ext, uchar sound_id, uchar sound_id_ext )
 {
-    if( !isActive || !GetSoundVolume() )
+    if( !isActive || !GameOpt.SoundVolume )
         return true;
 
     // Generate name of the sound
@@ -657,7 +637,7 @@ bool SoundManager::PlaySoundType( uchar sound_type, uchar sound_type_ext, uchar 
 
 bool SoundManager::PlayMusic( const char* fname, uint pos, uint repeat )
 {
-    if( !isActive || !GetMusicVolume() )
+    if( !isActive || !GameOpt.MusicVolume )
         return true;
 
     StopMusic();
@@ -694,7 +674,7 @@ void SoundManager::StopMusic()
 
 void SoundManager::PlayAmbient( const char* str )
 {
-    if( !isActive || !GetSoundVolume() )
+    if( !isActive || !GameOpt.SoundVolume )
         return;
 
     int  rnd = Random( 1, 100 );

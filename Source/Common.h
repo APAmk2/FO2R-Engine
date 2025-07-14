@@ -156,10 +156,6 @@ inline bool CompareContainers( const T& a, const T& b ) { return a.size() == b.s
 void GetHexOffsets( bool odd, short*& sx, short*& sy );
 void GetHexInterval( int from_hx, int from_hy, int to_hx, int to_hy, int& x, int& y );
 
-// Config file
-#define CLIENT_CONFIG_APP     "Game Options"
-const char* GetConfigFileName();
-
 // Window name
 const char* GetWindowName();
 
@@ -270,9 +266,6 @@ extern FOWindow* MainWindow; // Initialized and handled in MainClient.cpp / Main
 
 // Todo: Complete shadow maps
 // # define SHADOW_MAP
-
-# define MODE_WIDTH           ( GameOpt.ScreenWidth )
-# define MODE_HEIGHT          ( GameOpt.ScreenHeight )
 
 # ifdef FONLINE_CLIENT
 #  include "ResourceClient.h"
@@ -757,6 +750,8 @@ struct GameOptions
 	int			 MapperAutosave;
 	bool		 SpritesFiltering;
 	bool		 NoobCursor;
+	char		 SoundVolume;
+	char		 MusicVolume;
 
     GameOptions();
 } extern GameOpt;

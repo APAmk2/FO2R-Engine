@@ -86,8 +86,7 @@ int main( int argc, char** argv )
     Timer::Init();
 
     // Config
-    IniParser cfg;
-    cfg.LoadFile( GetConfigFileName(), PT_SERVER_ROOT );
+	IniParser& cfg = IniParser::GetServerConfig();
 
     // Memory debugging
     MemoryDebugLevel = cfg.GetInt( "MemoryDebugLevel", 0 );
@@ -936,8 +935,7 @@ int main( int argc, char** argv )
     Timer::Init();
 
     // Config
-    IniParser cfg;
-    cfg.LoadFile( GetConfigFileName(), PT_SERVER_ROOT );
+	IniParser& cfg = IniParser::GetServerConfig();
 
     // Memory debugging
     MemoryDebugLevel = cfg.GetInt( "MemoryDebugLevel", 0 );
@@ -1020,8 +1018,8 @@ void InitAdminManager( IniParser* cfg )
     uint port = 0;
     if( !cfg )
     {
-        IniParser cfg_;
-        if( !cfg_.LoadFile( GetConfigFileName(), PT_SERVER_ROOT ) )
+        IniParser& cfg_ = IniParser::GetServerConfig();
+        if( !cfg_.IsLoaded() )
         {
             WriteLogF( _FUNC_, "Can't access to config file.\n" );
             return;

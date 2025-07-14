@@ -255,7 +255,6 @@ private:
     Device_          d3dDevice;
     PresentParams_   presentParams;
     Caps_            deviceCaps;
-    int              modeWidth, modeHeight;
     bool             sceneBeginned;
     #ifndef FO_D3D
     RenderTarget     rtMain;
