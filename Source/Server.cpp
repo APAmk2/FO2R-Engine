@@ -1437,7 +1437,7 @@ void FOServer::Process( ClientPtr& cl )
             {
             case 0xFFFFFFFF:
             {
-                uint answer[ 4 ] = { CrMngr.PlayersInGame(), Statistics.Uptime, 0, 0 };
+                uint answer[ 4 ] = { Statistics.CurOnline, Statistics.Uptime, 0, 0 };
                 BOUT_BEGIN( cl );
                 cl->Bout.Push( (char*) answer, sizeof( answer ) );
                 cl->DisableZlib = true;
