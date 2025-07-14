@@ -9238,8 +9238,8 @@ void FOClient::PlayVideo()
     // Start sound
     if( video.SoundName != "" )
     {
-        MusicVolumeRestore = SndMngr.GetMusicVolume();
-        SndMngr.SetMusicVolume( 100 );
+        MusicVolumeRestore = GameOpt.MusicVolume;
+        GameOpt.MusicVolume = 100;
         SndMngr.PlayMusic( video.SoundName.c_str(), 0, 0 );
     }
 }
@@ -9503,7 +9503,7 @@ void FOClient::StopVideo()
     SndMngr.StopMusic();
     if( MusicVolumeRestore != -1 )
     {
-        SndMngr.SetMusicVolume( MusicVolumeRestore );
+		GameOpt.MusicVolume = MusicVolumeRestore;
         MusicVolumeRestore = -1;
     }
 }
