@@ -1336,20 +1336,6 @@ void FOClient::ParseKeyboard()
                         continue;
                     }
                     break;
-                case DIK_Q:
-                    if( IsMainScreen( SCREEN_GAME ) && GetActiveScreen() == SCREEN_NONE )
-                    {
-                        DrawLookBorders = !DrawLookBorders;
-                        RebuildLookBorders = true;
-                    }
-                    break;
-                case DIK_W:
-                    if( IsMainScreen( SCREEN_GAME ) && GetActiveScreen() == SCREEN_NONE )
-                    {
-                        DrawShootBorders = !DrawShootBorders;
-                        RebuildLookBorders = true;
-                    }
-                    break;
                 case DIK_SPACE:
                     if( Singleplayer )
                         SingleplayerData.Pause = !SingleplayerData.Pause;
