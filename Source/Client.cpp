@@ -4942,7 +4942,11 @@ void FOClient::Net_OnChosenParam()
     {
     case ST_CURRENT_AP:
     {
+#ifdef FORP_ENGINE
+		Chosen->ApRegenerationTick = Timer::GameTick();
+#else
         Chosen->ApRegenerationTick = 0;
+#endif
     }
     break;
     case TO_BATTLE:
@@ -7414,15 +7418,23 @@ void FOClient::CrittersProcess()
             Chosen->Alpha = 0xFF;
     }
 
+#ifndef FORP_ENGINE
     // Actions
     if( !Chosen->IsFree() )
         return;
+#endif
 
     // Game pause
     if( Timer::IsGamePaused() )
         return;
 
     // Ap regeneration
+#ifdef FORP_ENGINE
+	Chosen->RegenerateAp(AP_DELTA);
+    // Actions
+    if( !Chosen->IsFree() )
+        return;
+#else
     if( Chosen->GetParam( ST_CURRENT_AP ) < Chosen->GetParam( ST_ACTION_POINTS ) && !IsTurnBased )
     {
         uint tick = Timer::GameTick();
@@ -7431,10 +7443,10 @@ void FOClient::CrittersProcess()
         else
         {
             uint delta = tick - Chosen->ApRegenerationTick;
-            if( delta >= 500 )
+            if( delta >= AP_DELTA )
             {
                 int max_ap = Chosen->GetParam( ST_ACTION_POINTS ) * AP_DIVIDER;
-                Chosen->Params[ ST_CURRENT_AP ] += max_ap * delta / GameOpt.ApRegeneration;
+                Chosen->Params[ ST_CURRENT_AP ] += AP_REGEN_FORMULA( Chosen );
                 if( Chosen->Params[ ST_CURRENT_AP ] > max_ap )
                     Chosen->Params[ ST_CURRENT_AP ] = max_ap;
                 Chosen->ApRegenerationTick = tick;
@@ -7443,6 +7455,7 @@ void FOClient::CrittersProcess()
     }
     if( Chosen->GetParam( ST_CURRENT_AP ) > Chosen->GetParam( ST_ACTION_POINTS ) )
         Chosen->Params[ ST_CURRENT_AP ] = Chosen->GetParam( ST_ACTION_POINTS ) * AP_DIVIDER;
+#endif
 
     if( ChosenAction.empty() )
         return;
@@ -7553,6 +7566,9 @@ void FOClient::CrittersProcess()
             CHECK_NEED_REAL_AP( ap_cost_real );
         Chosen->IsRunning = is_run;
 
+		// hacky way to prevent jumpy walk-run cycle, prevents random disconnects
+        ChosenAction[ 0 ].Param[ 2 ] = is_run ? 1 : 0;
+
         if( hx == MoveLastHx && hy == MoveLastHy && MoveDirs.size() )
         {
             ushort hx_ = from_hx;
@@ -7609,8 +7625,10 @@ void FOClient::CrittersProcess()
 label_EndMove:
         if( IsTurnBased && ap_cost_real > 0 && (int) MoveDirs.size() / ( ap_cost_real / AP_DIVIDER ) > Chosen->GetParam( ST_CURRENT_AP ) + Chosen->GetParam( ST_MOVE_AP ) )
             MoveDirs.resize( Chosen->GetParam( ST_CURRENT_AP ) + Chosen->GetParam( ST_MOVE_AP ) );
+#ifndef FORP_ENGINE
         if( !IsTurnBased && ap_cost_real > 0 && (int) MoveDirs.size() > Chosen->GetRealAp() / ap_cost_real )
             MoveDirs.resize( Chosen->GetRealAp() / ap_cost_real );
+#endif
         if( MoveDirs.size() > 1 && Chosen->IsDmgTwoLeg() )
             MoveDirs.resize( 1 );
 
@@ -7640,11 +7658,17 @@ label_EndMove:
                     Chosen->SubAp( ap_cost );
                 }
             }
+#ifdef FORP_ENGINE
+			else if( ap_cost_real != 0 )
+#else
             else if( Chosen->GetParam( TO_BATTLE ) )
+#endif
             {
                 Chosen->Params[ ST_CURRENT_AP ] -= ap_cost_real;
             }
+#ifndef FORP_ENGINE
             Chosen->ApRegenerationTick = 0;
+#endif
             HexMngr.SetCursorPos( GameOpt.MouseX, GameOpt.MouseY, Keyb::CtrlDwn, true );
             RebuildLookBorders = true;
         }

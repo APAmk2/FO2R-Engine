@@ -319,7 +319,9 @@ public:
     {
         breakTime = ms;
         startBreakTime = Timer::GameTick();
+#ifndef FORP_ENGINE
         ApRegenerationTick = 0;
+#endif
     }
     void SetBreakTimeDelta( uint ms )
     {
@@ -458,11 +460,44 @@ public:
     bool CheckFind( int find_type );
     int  GetRealAp() { return Data.Params[ ST_CURRENT_AP ]; }
     int  GetAllAp()  { return GetParam( ST_CURRENT_AP ) + GetParam( ST_MOVE_AP ); }
+#ifdef FORP_ENGINE
+	void RegenerateAp(uint min_delta)
+    {
+        int max_ap = GetParam( ST_ACTION_POINTS ) * AP_DIVIDER;
+        uint tick = Timer::GameTick();
+        if( !IsTurnBased() && GetRealAp() < max_ap && ApRegenerationTick )
+        {
+            uint delta = tick - ApRegenerationTick;
+            if( delta >= min_delta )
+            {
+                int ap_regen = GetParam( ST_APREGEN );
+                Data.Params[ ST_CURRENT_AP ] += ap_regen * delta / 1000;
+                if( Data.Params[ ST_CURRENT_AP ] > max_ap ) {
+                    Data.Params[ ST_CURRENT_AP ] = max_ap;
+                }
+                ApRegenerationTick = tick;
+            }
+        }
+        else
+        {
+            ApRegenerationTick = tick;
+        }
+        if( Data.Params[ ST_CURRENT_AP ] > max_ap )
+        {
+            Data.Params[ ST_CURRENT_AP ] = max_ap;
+        }
+    }
+#endif
     void SubAp( int val )
     {
         ChangeParam( ST_CURRENT_AP );
+#ifdef FORP_ENGINE
+		RegenerateAp(1);
+#endif
         Data.Params[ ST_CURRENT_AP ] -= val * AP_DIVIDER;
+#ifndef FORP_ENGINE
         ApRegenerationTick = 0;
+#endif
     }
     void SubMoveAp( int val )
     {
@@ -473,8 +508,14 @@ public:
     // Turn based
     bool IsTurnBased() { return TB_BATTLE_TIMEOUT_CHECK( GetParam( TO_BATTLE ) ); }
     bool CheckMyTurn( Map* map );
-    int  GetApCostCritterMove( bool is_run ) { return IsTurnBased() ? GameOpt.TbApCostCritterMove * AP_DIVIDER * ( IsDmgTwoLeg() ? 4 : ( IsDmgLeg() ? 2 : 1 ) ) : ( GetParam( TO_BATTLE ) ? ( is_run ? GameOpt.RtApCostCritterRun : GameOpt.RtApCostCritterWalk ) : 0 ); }
-    int  GetApCostMoveItemContainer()        { return IsTurnBased() ? GameOpt.TbApCostMoveItemContainer : GameOpt.RtApCostMoveItemContainer; }
+    
+#ifdef FORP_ENGINE
+	int  GetApCostCritterMove( bool is_run ) { return is_run ? GetParam( ST_AP_COST_RUN ) : 0; }
+#else
+	int  GetApCostCritterMove( bool is_run ) { return IsTurnBased() ? GameOpt.TbApCostCritterMove * AP_DIVIDER * ( IsDmgTwoLeg() ? 4 : ( IsDmgLeg() ? 2 : 1 ) ) : ( GetParam( TO_BATTLE ) ? ( is_run ? GameOpt.RtApCostCritterRun : GameOpt.RtApCostCritterWalk ) : 0 ); }
+#endif
+
+	int  GetApCostMoveItemContainer()        { return IsTurnBased() ? GameOpt.TbApCostMoveItemContainer : GameOpt.RtApCostMoveItemContainer; }
     int  GetApCostMoveItemInventory()
     {
         int val = IsTurnBased() ? GameOpt.TbApCostMoveItemInventory : GameOpt.RtApCostMoveItemInventory;

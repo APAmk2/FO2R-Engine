@@ -22,6 +22,9 @@ void FOServer::ProcessCritter( Critter* cr )
     }
 
     // Ap regeneration
+#ifdef FORP_ENGINE
+	cr->RegenerateAp(AP_DELTA);
+#else
     int max_ap = cr->GetParam( ST_ACTION_POINTS ) * AP_DIVIDER;
     if( cr->IsFree() && cr->GetRealAp() < max_ap && !cr->IsTurnBased() )
     {
@@ -30,9 +33,9 @@ void FOServer::ProcessCritter( Critter* cr )
         else
         {
             uint delta = tick - cr->ApRegenerationTick;
-            if( delta >= 500 )
+            if( delta >= AP_DELTA )
             {
-                cr->Data.Params[ ST_CURRENT_AP ] += max_ap * delta / GameOpt.ApRegeneration;
+                cr->Data.Params[ ST_CURRENT_AP ] += AP_REGEN_FORMULA( cr );
                 if( cr->Data.Params[ ST_CURRENT_AP ] > max_ap )
                     cr->Data.Params[ ST_CURRENT_AP ] = max_ap;
                 cr->ApRegenerationTick = tick;
@@ -42,6 +45,8 @@ void FOServer::ProcessCritter( Critter* cr )
     }
     if( cr->Data.Params[ ST_CURRENT_AP ] > max_ap )
         cr->Data.Params[ ST_CURRENT_AP ] = max_ap;
+#endif
+
 
     // Internal misc/drugs time events
     // One event per cycle
@@ -359,22 +364,44 @@ bool FOServer::Act_Move( Critter* cr, ushort hx, ushort hy, uint move_params )
                 map->EndCritterTurn();
         }
     }
+#ifdef FORP_ENGINE
+	else
+#else
     else if( cr->GetParam( TO_BATTLE ) )
+#endif
     {
         int ap_cost = cr->GetApCostCritterMove( is_run );
+#ifdef FORP_ENGINE
+		if (ap_cost)
+		{
+			if( cr->GetRealAp() < ap_cost * 2 )
+                cr->RegenerateAp(1);
+            uint real_ap = cr->GetRealAp();
+
+            if ( !Singleplayer && real_ap < ap_cost)
+            {
+                cr->Send_Param( ST_CURRENT_AP );
+                cr->Send_XY( cr );
+                return false;
+            }
+#else
         if( cr->GetRealAp() < ap_cost && !Singleplayer )
-        {
-            cr->Send_XY( cr );
-            cr->Send_Param( ST_CURRENT_AP );
-            return false;
-        }
-        if( ap_cost )
-        {
-            int steps = cr->GetRealAp() / ap_cost - 1;
+		{
+			cr->Send_XY(cr);
+			cr->Send_Param(ST_CURRENT_AP);
+			return false;
+		}
+		if (ap_cost)
+		{
+			uint real_ap = cr->GetRealAp();
+#endif
+			int steps = real_ap / ap_cost - 1;
             if( steps < MOVE_PARAM_STEP_COUNT )
                 move_params |= ( MOVE_PARAM_STEP_DISALLOW << ( steps * MOVE_PARAM_STEP_BITS ) );                               // Cut steps
             cr->Data.Params[ ST_CURRENT_AP ] -= ap_cost;
+#ifndef FORP_ENGINE
             cr->ApRegenerationTick = 0;
+#endif
         }
     }
 

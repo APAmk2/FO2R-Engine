@@ -564,6 +564,18 @@ const char ClientSaveSignature[ 4 ] = { 'F', 'O', 0, CLIENT_SAVE_LAST };
 #define REPUTATION_BEGIN             ( GameOpt.ReputationBegin )
 #define REPUTATION_END               ( GameOpt.ReputationEnd )
 
+// FORP AP stuff
+#ifdef FORP_ENGINE
+#define AP_DELTA					 ( 250 )
+#define AP_REGEN_FORMULA( cr )		 ( cr->GetParam( ST_APREGEN ) * delta / 1000 )
+
+#define ST_APREGEN                   ( 192 )
+#define ST_AP_COST_RUN               ( 782 )			// Hardcoded! Used by client and server engine. 1 AP == 100, maximim 255. Used instead of RtApCostCritterRun.
+#else
+#define AP_DELTA					 ( 500 )
+#define AP_REGEN_FORMULA( cr )		 ( max_ap * delta / GameOpt.ApRegeneration )
+#endif
+
 // Special send params
 #define OTHER_BREAK_TIME             ( 0 + MAX_PARAMS )
 #define OTHER_WAIT_TIME              ( 1 + MAX_PARAMS )
