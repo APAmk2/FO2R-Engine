@@ -101,7 +101,7 @@ const char* GetLastSocketError();
     { if( x )         \
           delete[] ( x ); ( x ) = NULL; }
 
-#define STATIC_ASSERT( a )                { static int static_assert_array__[ ( a ) ? 1 : -1 ]; }
+#define STATIC_ASSERT( a )                static_assert( a, #a )
 
 #define PI_FLOAT              ( 3.14159265f )
 #define PIBY2_FLOAT           ( 1.5707963f )
@@ -884,6 +884,7 @@ extern InterprocessData SingleplayerData;
 
 # ifdef FO_WINDOWS
 #  define PTW32_STATIC_LIB
+#  define HAVE_STRUCT_TIMESPEC
 #  include "PthreadWnd/pthread.h"
 # else
 #  include <pthread.h>

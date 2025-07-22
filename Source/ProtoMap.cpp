@@ -2433,9 +2433,9 @@ void ProtoMap::GetMObjectsHexEx( ushort hx, ushort hy, uint radius, ushort pid, 
 
 void ProtoMap::GetWalls( ushort hexX, ushort hexY, SceneryClRefVec& sceneries )
 {
-	for( auto it = WallsToSend.begin( ), end = WallsToSend.end( ); it != end; ++it )
+	for( SceneryClVec::iterator it = WallsToSend.begin( ), end = WallsToSend.end( ); it != end; ++it )
 	{
-		SceneryCl* mobj = it;
+		SceneryCl* mobj = &(*it);
 		if( mobj->MapX == hexX && mobj->MapY == hexY )
 			sceneries.push_back( mobj );
 	}
@@ -2443,9 +2443,9 @@ void ProtoMap::GetWalls( ushort hexX, ushort hexY, SceneryClRefVec& sceneries )
 
 void ProtoMap::GetSceneryClients( ushort hexX, ushort hexY, SceneryClRefVec& sceneries )
 {
-	for( auto it = SceneriesToSend.begin( ), end = SceneriesToSend.end( ); it != end; ++it )
+	for( SceneryClVec::iterator it = SceneriesToSend.begin( ), end = SceneriesToSend.end( ); it != end; ++it )
 	{
-		SceneryCl* mobj = it;
+		SceneryCl* mobj = &(*it);
 		if( mobj->MapX == hexX && mobj->MapY == hexY )
 			sceneries.push_back( mobj );
 	}

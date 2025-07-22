@@ -216,7 +216,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\Source\StlPort;..\Source;..\Source\Dx9;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Source;..\Source\Dx9;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>FO_D3D;NDEBUG;_WINDOWS;FONLINE_MAPPER;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;AS_NO_THREADS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
