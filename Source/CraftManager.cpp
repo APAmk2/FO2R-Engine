@@ -82,7 +82,7 @@ CraftItem& CraftItem::operator=( const CraftItem& _right )
     OutItemsVal = _right.OutItemsVal;
 
     // Other
-    Script = _right.Script;
+	ScriptName = _right.ScriptName;
     ScriptBindId = _right.ScriptBindId;
     Experience = _right.Experience;
     return *this;
@@ -116,7 +116,7 @@ void CraftItem::Clear()
     NeedToolsVal.clear();
     OutItems.clear();
     OutItemsVal.clear();
-    Script.clear();
+	ScriptName.clear();
     ScriptBindId = 0;
     Experience = 0;
 }
@@ -251,9 +251,9 @@ int CraftItem::SetStr( uint num, const char* str_in )
         SetStrMetadata( OutItems, pstr_in );
         SetStrMetadata( OutItemsVal, pstr_in );
         if( Str::Substring( pstr_in, "script" ) )
-            Script = "true";
+			ScriptName = "true";
         else
-            Script = "";
+			ScriptName = "";
         return 0;
     }
 
@@ -286,9 +286,9 @@ int CraftItem::SetStr( uint num, const char* str_in )
 
     // Parse script
     if( Str::Substring( pstr_in, "script " ) )
-        Script = Str::Substring( pstr_in, "script " ) + Str::Length( "script " );
+		ScriptName = Str::Substring( pstr_in, "script " ) + Str::Length( "script " );
     else
-        Script = "";
+		ScriptName = "";
 
     // Experience
     if( Str::Substring( pstr_in, "exp " ) )
@@ -436,7 +436,7 @@ const char* CraftItem::GetStr( bool metadata )
         GetStrMetadata( NeedToolsOr, str );
         GetStrMetadata( OutItems, str );
         GetStrMetadata( OutItemsVal, str );
-        if( Script.length() )
+        if( ScriptName.length() )
             Str::Append( str, "script" );
         return str;
     }
@@ -472,10 +472,10 @@ const char* CraftItem::GetStr( bool metadata )
     }
 
     // Script
-    if( Script.length() )
+    if( ScriptName.length() )
     {
         Str::Append( str, "script " );
-        Str::Append( str, Script.c_str() );
+        Str::Append( str, ScriptName.c_str() );
     }
     #endif
     return str;
@@ -685,9 +685,9 @@ bool CraftManager::AddCraft( uint num, const char* str )
     }
 
     #ifdef FONLINE_SERVER
-    if( craft->Script.length() )
+    if( craft->ScriptName.length() )
     {
-        craft->ScriptBindId = Script::Bind( craft->Script.c_str(), "int %s(Critter&, int, CraftItem&)", false );
+        craft->ScriptBindId = Script::Bind( craft->ScriptName.c_str(), "int %s(Critter&, int, CraftItem&)", false );
         if( !craft->ScriptBindId )
         {
             delete craft;

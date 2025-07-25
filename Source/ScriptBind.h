@@ -373,7 +373,6 @@ BIND_ASSERT( engine->RegisterObjectProperty( "CraftItem", "const uint Num", OFFS
 BIND_ASSERT( engine->RegisterObjectProperty( "CraftItem", "const string Name", OFFSETOF( CraftItem, Name ) ) );
 BIND_ASSERT( engine->RegisterObjectProperty( "CraftItem", "const string Info", OFFSETOF( CraftItem, Info ) ) );
 BIND_ASSERT( engine->RegisterObjectProperty( "CraftItem", "const uint Experience", OFFSETOF( CraftItem, Experience ) ) );
-BIND_ASSERT( engine->RegisterObjectProperty( "CraftItem", "const string Script", OFFSETOF( CraftItem, Script ) ) );
 
 // Methods
 BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "uint GetShowParams(array<uint>@+ nums, array<int>@+ values, array<bool>@+ ors)", asFUNCTION( BIND_CLASS CraftItem_GetShowParams ), asCALL_CDECL_OBJFIRST ) );
@@ -381,6 +380,7 @@ BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "uint GetNeedParams(arra
 BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "uint GetNeedTools(array<uint16>@+ pids, array<uint>@+ values, array<bool>@+ ors)", asFUNCTION( BIND_CLASS CraftItem_GetNeedTools ), asCALL_CDECL_OBJFIRST ) );
 BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "uint GetNeedItems(array<uint16>@+ pids, array<uint>@+ values, array<bool>@+ ors)", asFUNCTION( BIND_CLASS CraftItem_GetNeedItems ), asCALL_CDECL_OBJFIRST ) );
 BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "uint GetOutItems(array<uint16>@+ pids, array<uint>@+ values)", asFUNCTION( BIND_CLASS CraftItem_GetOutItems ), asCALL_CDECL_OBJFIRST ) );
+BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "string@ get_ScriptName() const", asFUNCTION( BIND_CLASS CraftItem_GetScriptName ), asCALL_CDECL_OBJFIRST ) );
 
 /************************************************************************/
 /* Scenery                                                              */
@@ -1021,12 +1021,12 @@ BIND_ASSERT( engine->RegisterObjectProperty( "CraftItem", "const uint Num", OFFS
 BIND_ASSERT( engine->RegisterObjectProperty( "CraftItem", "const string Name", OFFSETOF( CraftItem, Name ) ) );
 BIND_ASSERT( engine->RegisterObjectProperty( "CraftItem", "const string Info", OFFSETOF( CraftItem, Info ) ) );
 BIND_ASSERT( engine->RegisterObjectProperty( "CraftItem", "const uint Experience", OFFSETOF( CraftItem, Experience ) ) );
-BIND_ASSERT( engine->RegisterObjectProperty( "CraftItem", "const string Script", OFFSETOF( CraftItem, Script ) ) );
 BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "uint GetShowParams(array<uint>@+ nums, array<int>@+ values, array<bool>@+ ors)", asFUNCTION( BIND_CLASS CraftItem_GetShowParams ), asCALL_CDECL_OBJFIRST ) );
 BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "uint GetNeedParams(array<uint>@+ nums, array<int>@+ values, array<bool>@+ ors)", asFUNCTION( BIND_CLASS CraftItem_GetNeedParams ), asCALL_CDECL_OBJFIRST ) );
 BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "uint GetNeedTools(array<uint16>@+ pids, array<uint>@+ values, array<bool>@+ ors)", asFUNCTION( BIND_CLASS CraftItem_GetNeedTools ), asCALL_CDECL_OBJFIRST ) );
 BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "uint GetNeedItems(array<uint16>@+ pids, array<uint>@+ values, array<bool>@+ ors)", asFUNCTION( BIND_CLASS CraftItem_GetNeedItems ), asCALL_CDECL_OBJFIRST ) );
 BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "uint GetOutItems(array<uint16>@+ pids, array<uint>@+ values)", asFUNCTION( BIND_CLASS CraftItem_GetOutItems ), asCALL_CDECL_OBJFIRST ) );
+BIND_ASSERT( engine->RegisterObjectMethod( "CraftItem", "string@ get_ScriptName() const", asFUNCTION( BIND_CLASS CraftItem_GetScriptName ), asCALL_CDECL_OBJFIRST ) );
 BIND_ASSERT( engine->RegisterGlobalFunction( "CraftItem@ GetCraftItem(uint num)", asFUNCTION(BIND_CLASS Global_GetCraftItem ), asCALL_CDECL ) );
 
 BIND_ASSERT( engine->RegisterGlobalFunction( "CritterCl@+ GetChosen()", asFUNCTION( BIND_CLASS Global_GetChosen ), asCALL_CDECL ) );

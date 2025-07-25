@@ -51,7 +51,7 @@ public:
     UIntVec    OutItemsVal;
 
     // Other
-    string     Script;
+    string     ScriptName;
     uint       ScriptBindId; // In runtime
     uint       Experience;
 

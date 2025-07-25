@@ -498,7 +498,7 @@ struct CraftItem
     int  Name;
     int  Info;
     int  Experience;
-    int  Script;
+    int  ScriptName;
 
     void AddRef()  {}
     void Release() {}

@@ -10853,7 +10853,7 @@ void FOClient::FixGenerate( int fix_mode )
         {
             CraftItem* craft = true_crafts[ i ];
 
-            if( craft->Script.length() )
+            if( craft->ScriptName.length() )
             {
                 script_craft.push_back( craft->Num );
                 if( !FixShowCraft.count( craft->Num ) )

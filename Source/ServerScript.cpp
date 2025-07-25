@@ -1310,6 +1310,12 @@ uint FOServer::SScriptFunc::CraftItem_GetOutItems( CraftItem* craft, ScriptArray
     return (uint) craft->OutItems.size();
 }
 
+ScriptString* FOServer::SScriptFunc::CraftItem_GetScriptName( CraftItem* craft )
+{
+	const char* c_str = craft->ScriptName.c_str();
+	return new ScriptString(c_str);
+}
+
 bool FOServer::SScriptFunc::Scen_CallSceneryFunction( MapObject* scenery, Critter* cr, int skill, Item* item )
 {
     if( !scenery->RunTime.BindScriptId )
@@ -6480,6 +6486,8 @@ void FOServer::SScriptFunc::Global_Resynchronize()
     if( !Script::ResynchronizeThread() )
         SCRIPT_ERROR_R( "Invalid call." );
 }
+
+
 
 /************************************************************************/
 /*                                                                      */
