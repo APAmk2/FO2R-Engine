@@ -2799,6 +2799,16 @@ void FOServer::SScriptFunc::Cl_Disconnect( Critter* cl )
         cl_->Disconnect();
 }
 
+bool FOServer::SScriptFunc::Cl_IsOnline( Critter* cl )
+{
+	if (cl->IsNotValid)
+		SCRIPT_ERROR_R0("This nullptr.");
+	if (!cl->IsPlayer())
+		SCRIPT_ERROR_R0("Critter is not player.");
+	Client* cl_ = (Client*)cl;
+	return cl_->IsOnline();
+}
+
 bool FOServer::SScriptFunc::Crit_SetScript( Critter* cr, ScriptString* script )
 {
     if( cr->IsNotValid )
