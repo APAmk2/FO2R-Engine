@@ -363,6 +363,31 @@ struct MapObject
     void Release() {}
 };
 
+struct SceneryCl
+{
+	int	ProtoId;
+	int	Flags;
+	int	SpriteCut;
+	int	MapX;
+	int	MapY;
+	int	OffsetX;
+	int	OffsetY;
+	int	LightColor;
+	int	LightDistance;
+	int	LightFlags;
+	int	LightIntensity;
+	int	InfoOffset;
+	int	AnimStayBegin;
+	int	AnimStayEnd;
+	int	AnimWait;
+	int	PicMapHash;
+	int	Dir;
+	int	Reserved1;
+
+	void AddRef() { }
+	void Release() { }
+};
+
 struct CritData
 {
     int Id;
@@ -560,6 +585,7 @@ struct BindClass
     static void CraftItem_GetNeedTools()  {}
     static void CraftItem_GetNeedItems()  {}
     static void CraftItem_GetOutItems()   {}
+	static void CraftItem_GetScriptName() {}
 
     static void Scen_CallSceneryFunction() {}
 
@@ -780,6 +806,9 @@ struct BindClass
     static void Map_GetSceneriesHex()          {}
     static void Map_GetSceneriesHexEx()        {}
     static void Map_GetSceneriesByPid()        {}
+	static void Map_GetWalls()				   {}
+	static void Map_GetSceneryClients()		   {}
+	static void Map_GetMObjectsHexEx()		   {}
     static void Map_GetCritterHex()            {}
     static void Map_GetCritterById()           {}
     static void Map_GetCritters()              {}
