@@ -1013,6 +1013,11 @@ struct BindClass
     static void Global_SaveLogFile()            {}
 	static void Global_CustomCall()				{}
 	static void Global_SetUserConfig()			{}
+	static void CraftItem_GetShowParams()		{}
+	static void CraftItem_GetNeedParams()		{}
+	static void CraftItem_GetNeedTools()		{}
+	static void CraftItem_GetNeedItems()		{}
+	static void CraftItem_GetOutItems()			{}
 
     static int  ConsoleActive;
     static int  GmapActive, GmapWait;

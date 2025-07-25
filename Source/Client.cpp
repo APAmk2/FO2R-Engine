@@ -12371,6 +12371,69 @@ void FOClient::SScriptFunc::Global_SetUserConfig( ScriptArray& key_values )
     cfg_user.SaveOutBufToFile( cfg_name, PT_ROOT );
 }
 
+uint FOClient::SScriptFunc::CraftItem_GetShowParams( CraftItem* craft, ScriptArray* nums, ScriptArray* vals, ScriptArray* ors )
+{
+	if (nums)
+		Script::AppendVectorToArray(craft->ShowPNum, nums);
+	if (vals)
+		Script::AppendVectorToArray(craft->ShowPVal, vals);
+	if (ors)
+		Script::AppendVectorToArray(craft->ShowPOr, ors);
+
+	return (uint)craft->ShowPNum.size();
+}
+
+uint FOClient::SScriptFunc::CraftItem_GetNeedParams( CraftItem* craft, ScriptArray* nums, ScriptArray* vals, ScriptArray* ors )
+{
+	if (nums)
+		Script::AppendVectorToArray(craft->NeedPNum, nums);
+	if (vals)
+		Script::AppendVectorToArray(craft->NeedPVal, vals);
+	if (ors)
+		Script::AppendVectorToArray(craft->NeedPOr, ors);
+
+	return (uint)craft->NeedPNum.size();
+}
+
+uint FOClient::SScriptFunc::CraftItem_GetNeedTools( CraftItem* craft, ScriptArray* pids, ScriptArray* vals, ScriptArray* ors )
+{
+	if (pids)
+		Script::AppendVectorToArray(craft->NeedTools, pids);
+	if (vals)
+		Script::AppendVectorToArray(craft->NeedToolsVal, vals);
+	if (ors)
+		Script::AppendVectorToArray(craft->NeedToolsOr, ors);
+
+	return (uint)craft->NeedTools.size();
+}
+
+uint FOClient::SScriptFunc::CraftItem_GetNeedItems( CraftItem* craft, ScriptArray* pids, ScriptArray* vals, ScriptArray* ors )
+{
+	if (pids)
+		Script::AppendVectorToArray(craft->NeedItems, pids);
+	if (vals)
+		Script::AppendVectorToArray(craft->NeedItemsVal, vals);
+	if (ors)
+		Script::AppendVectorToArray(craft->NeedItemsOr, ors);
+
+	return (uint)craft->NeedItems.size();
+}
+
+uint FOClient::SScriptFunc::CraftItem_GetOutItems( CraftItem* craft, ScriptArray* pids, ScriptArray* vals )
+{
+	if (pids)
+		Script::AppendVectorToArray(craft->OutItems, pids);
+	if (vals)
+		Script::AppendVectorToArray(craft->OutItemsVal, vals);
+
+	return (uint)craft->OutItems.size();
+}
+
+CraftItem* FOClient::SScriptFunc::Global_GetCraftItem( uint num )
+{
+	return MrFixit.GetCraft(num);
+}
+
 bool&  FOClient::SScriptFunc::ConsoleActive = FOClient::ConsoleActive;
 bool&  FOClient::SScriptFunc::GmapActive = FOClient::GmapActive;
 bool&  FOClient::SScriptFunc::GmapWait = FOClient::GmapWait;

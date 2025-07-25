@@ -652,6 +652,13 @@ public:
 		static ScriptString* Global_CustomCall( ScriptString& command, ScriptString& separator );
 		static void			 Global_SetUserConfig( ScriptArray& key_values );
 
+		static uint			 CraftItem_GetShowParams( CraftItem* craft, ScriptArray* nums, ScriptArray* vals, ScriptArray* ors );
+		static uint			 CraftItem_GetNeedParams( CraftItem* craft, ScriptArray* nums, ScriptArray* vals, ScriptArray* ors );
+		static uint			 CraftItem_GetNeedTools( CraftItem* craft, ScriptArray* pids, ScriptArray* vals, ScriptArray* ors );
+		static uint			 CraftItem_GetNeedItems( CraftItem* craft, ScriptArray* pids, ScriptArray* vals, ScriptArray* ors );
+		static uint			 CraftItem_GetOutItems( CraftItem* craft, ScriptArray* pids, ScriptArray* vals );
+		static CraftItem*	 Global_GetCraftItem( uint num );
+
         static bool&         ConsoleActive;
         static bool&         GmapActive, & GmapWait;
         static float&        GmapZoom;
