@@ -658,6 +658,7 @@ public:
 		static uint			 CraftItem_GetNeedItems( CraftItem* craft, ScriptArray* pids, ScriptArray* vals, ScriptArray* ors );
 		static uint			 CraftItem_GetOutItems( CraftItem* craft, ScriptArray* pids, ScriptArray* vals );
 		static CraftItem*	 Global_GetCraftItem( uint num );
+		static ScriptString* CraftItem_GetScriptName( CraftItem* craft );
 
         static bool&         ConsoleActive;
         static bool&         GmapActive, & GmapWait;

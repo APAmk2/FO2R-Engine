@@ -566,7 +566,7 @@ bool CraftManager::operator==( const CraftManager& r )
         COMPARE_CRAFT( NeedToolsOr );
         COMPARE_CRAFT( OutItems );
         COMPARE_CRAFT( OutItemsVal );
-        COMPARE_CRAFT( Script );
+        COMPARE_CRAFT( ScriptName );
         COMPARE_CRAFT( Experience );
     }
     return true;

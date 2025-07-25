@@ -12438,6 +12438,12 @@ CraftItem* FOClient::SScriptFunc::Global_GetCraftItem( uint num )
 	return MrFixit.GetCraft(num);
 }
 
+ScriptString* FOClient::SScriptFunc::CraftItem_GetScriptName(CraftItem* craft)
+{
+	const char* c_str = craft->ScriptName.c_str();
+	return new ScriptString(c_str);
+}
+
 bool&  FOClient::SScriptFunc::ConsoleActive = FOClient::ConsoleActive;
 bool&  FOClient::SScriptFunc::GmapActive = FOClient::GmapActive;
 bool&  FOClient::SScriptFunc::GmapWait = FOClient::GmapWait;

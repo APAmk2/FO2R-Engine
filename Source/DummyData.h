@@ -1019,6 +1019,7 @@ struct BindClass
 	static void CraftItem_GetNeedTools()		{}
 	static void CraftItem_GetNeedItems()		{}
 	static void CraftItem_GetOutItems()			{}
+	static void CraftItem_GetScriptName()		{}
 
     static int  ConsoleActive;
     static int  GmapActive, GmapWait;
