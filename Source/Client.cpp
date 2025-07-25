@@ -7842,7 +7842,11 @@ label_EndMove:
 
             CHECK_NEED_AP( ap_cost );
 
-            if( is_main_item )
+#ifdef FORP_ENGINE
+            if( is_main_item && item->Data.Mode == USE_RELOAD )
+#else
+			if( is_main_item )
+#endif
             {
                 item->SetMode( USE_PRIMARY );
                 Net_SendRateItem();
