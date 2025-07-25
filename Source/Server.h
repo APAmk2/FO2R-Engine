@@ -526,6 +526,7 @@ public:
         static Item*  Item_GetChild( Item* item, uint child_index );
         static bool   Item_LockerOpen( Item* item );
         static bool   Item_LockerClose( Item* item );
+		static void	  Item_SetMode( Item* item, uchar mode );
 
         static void Item_EventFinish( Item* item, bool deleted );
         static bool Item_EventAttack( Item* item, Critter* attacker, Critter* target );

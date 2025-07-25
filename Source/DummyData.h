@@ -539,6 +539,7 @@ struct BindClass
     static void Item_GetChild()       {}
     static void Item_LockerOpen()     {}
     static void Item_LockerClose()    {}
+	static void Item_SetMode()		  {}
 
     static void Item_EventFinish()  {}
     static void Item_EventAttack()  {}

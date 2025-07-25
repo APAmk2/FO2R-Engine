@@ -1071,6 +1071,13 @@ bool FOServer::SScriptFunc::Item_LockerClose( Item* item )
     return true;
 }
 
+void FOServer::SScriptFunc::Item_SetMode( Item* item, uchar mode )
+{
+	if( item->IsNotValid )
+		SCRIPT_ERROR_R( "This nullptr." );
+	item->SetMode( mode );
+}
+
 void FOServer::SScriptFunc::Item_EventFinish( Item* item, bool deleted )
 {
     if( item->IsNotValid )
