@@ -311,6 +311,9 @@
     <ClCompile Include="..\API\API_Server.cpp">
       <Filter>API</Filter>
     </ClCompile>
+    <ClCompile Include="..\API\API_AngelScript.cpp">
+      <Filter>API</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\Zlib\crc32.h">
@@ -632,6 +635,9 @@
       <Filter>API</Filter>
     </ClInclude>
     <ClInclude Include="..\API\API_Server.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="..\API\API_AngelScript.h">
       <Filter>API</Filter>
     </ClInclude>
   </ItemGroup>
