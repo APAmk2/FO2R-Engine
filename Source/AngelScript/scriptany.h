@@ -1,78 +1,85 @@
 #ifndef SCRIPTANY_H
 #define SCRIPTANY_H
 
-#ifndef ANGELSCRIPT_H 
-// Avoid having to inform include path if header is already include before
 #include "angelscript.h"
-#endif
 
-
-BEGIN_AS_NAMESPACE
-
-class CScriptAny 
+class ScriptAny
 {
 public:
-	// Constructors
-	CScriptAny(asIScriptEngine *engine);
-	CScriptAny(void *ref, int refTypeId, asIScriptEngine *engine);
+    #ifdef FONLINE_DLL
+    static ScriptAny& Create()
+    {
+        static int typeId = ASEngine->GetTypeIdByDecl( "any" );
+        ScriptAny* scriptAny = (ScriptAny*) ASEngine->CreateScriptObject( typeId );
+        return *scriptAny;
+    }
+protected:
+    #endif
 
-	// Memory management
-	virtual int AddRef() const;
-	virtual int Release() const;
+    // Constructors
+    ScriptAny();
+    ScriptAny( const ScriptAny& );
+    ScriptAny( asIScriptEngine* engine );
+    ScriptAny( void* ref, int refTypeId, asIScriptEngine* engine );
 
-	// Copy the stored value from another any object
-	CScriptAny &operator=(const CScriptAny&);
-	virtual int CopyFrom(const CScriptAny *other);
+public:
+    // Memory management
+    virtual void AddRef() const;
+    virtual void Release() const;
 
-	// Store the value, either as variable type, integer number, or real number
-	virtual void Store(void *ref, int refTypeId);
-	virtual void Store(asINT64 &value);
-	virtual void Store(double &value);
+    // Copy the stored value from another any object
+    ScriptAny& operator=( const ScriptAny& other )
+    {
+        Assign( other );
+        return *this;
+    }
+    virtual void Assign( const ScriptAny& other );
+    virtual int  CopyFrom( const ScriptAny* other );
 
-	// Retrieve the stored value, either as variable type, integer number, or real number
-	virtual bool Retrieve(void *ref, int refTypeId) const;
-	virtual bool Retrieve(asINT64 &value) const;
-	virtual bool Retrieve(double &value) const;
+    // Store the value, either as variable type, integer number, or real number
+    virtual void Store( void* ref, int refTypeId );
+    virtual void Store( asINT64& value );
+    virtual void Store( double& value );
 
-	// Get the type id of the stored value
-	virtual int  GetTypeId() const;
+    // Retrieve the stored value, either as variable type, integer number, or real number
+    virtual bool Retrieve( void* ref, int refTypeId ) const;
+    virtual bool Retrieve( asINT64& value ) const;
+    virtual bool Retrieve( double& value ) const;
 
-	// GC methods
-	virtual int  GetRefCount();
-	virtual void SetFlag();
-	virtual bool GetFlag();
-	virtual void EnumReferences(asIScriptEngine *engine);
-	virtual void ReleaseAllHandles(asIScriptEngine *engine);
+    // Get the type id of the stored value
+    virtual int GetTypeId() const;
+
+    // GC methods
+    virtual int  GetRefCount();
+    virtual void SetFlag();
+    virtual bool GetFlag();
+    virtual void EnumReferences( asIScriptEngine* engine );
+    virtual void ReleaseAllHandles( asIScriptEngine* engine );
 
 protected:
-	virtual ~CScriptAny();
-	virtual void FreeObject();
+    virtual ~ScriptAny();
+    virtual void FreeObject();
 
-	mutable int refCount;
-	mutable bool gcFlag;
-	asIScriptEngine *engine;
+    mutable int      refCount;
+    asIScriptEngine* engine;
 
-	// The structure for holding the values
+    // The structure for holding the values
     struct valueStruct
     {
         union
         {
             asINT64 valueInt;
             double  valueFlt;
-            void   *valueObj;
+            void*   valueObj;
         };
-        int   typeId;
+        int typeId;
     };
 
-	valueStruct value;
+    valueStruct value;
 };
 
 #ifndef FONLINE_DLL
-void RegisterScriptAny(asIScriptEngine *engine);
-void RegisterScriptAny_Native(asIScriptEngine *engine);
-void RegisterScriptAny_Generic(asIScriptEngine *engine);
+void RegisterScriptAny( asIScriptEngine* engine );
 #endif
-
-END_AS_NAMESPACE
 
 #endif

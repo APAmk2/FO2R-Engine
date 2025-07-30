@@ -359,9 +359,6 @@
     <ClInclude Include="..\Source\AngelScript\preprocessor.h">
       <Filter>AngelScript</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\AngelScript\scriptgrid.h">
-      <Filter>AngelScript</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Common.cpp">
@@ -626,9 +623,6 @@
       <Filter>GL</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\AngelScript\preprocessor.cpp">
-      <Filter>AngelScript</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Source\AngelScript\scriptgrid.cpp">
       <Filter>AngelScript</Filter>
     </ClCompile>
   </ItemGroup>

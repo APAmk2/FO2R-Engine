@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2016 Andreas Jonsson
+   Copyright (c) 2003-2013 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied 
    warranty. In no event will the authors be held liable for any 
@@ -47,14 +47,10 @@ BEGIN_AS_NAMESPACE
 
 struct asSTypeBehaviour;
 class asCScriptEngine;
-class asCTypeInfo;
-class asCScriptFunction;
-class asCModule;
 class asCObjectType;
-class asCEnumType;
-struct asSNameSpace;
+class asCScriptFunction;
 
-// TODO: refactor: Reference should not be part of the datatype. This should be stored separately, e.g. in asCExprValue
+// TODO: refactor: Reference should not be part of the datatype. This should be stored separately, e.g. in asCTypeInfo
 //                 MakeReference, MakeReadOnly, IsReference, IsReadOnly should be removed
 
 class asCDataType
@@ -66,55 +62,46 @@ public:
 
 	bool IsValid() const;
 
-	asCString Format(asSNameSpace *currNs, bool includeNamespace = false) const;
+	asCString Format(bool includeNamespace = false) const;
 
 	static asCDataType CreatePrimitive(eTokenType tt, bool isConst);
-	static asCDataType CreateType(asCTypeInfo *ti, bool isConst);
-	static asCDataType CreateAuto(bool isConst);
-	static asCDataType CreateObjectHandle(asCTypeInfo *ot, bool isConst);
+	static asCDataType CreateObject(asCObjectType *ot, bool isConst);
+	static asCDataType CreateObjectHandle(asCObjectType *ot, bool isConst);
+	static asCDataType CreateFuncDef(asCScriptFunction *ot);
 	static asCDataType CreateNullHandle();
 
 	int MakeHandle(bool b, bool acceptHandleForScope = false);
-	int MakeArray(asCScriptEngine *engine, asCModule *requestingModule);
+	int MakeArray(asCScriptEngine *engine);
 	int MakeReference(bool b);
 	int MakeReadOnly(bool b);
 	int MakeHandleToConst(bool b);
-	void SetIfHandleThenConst(bool b) { ifHandleThenConst = b; }
-	bool HasIfHandleThenConst() const { return ifHandleThenConst; }
 
-	bool IsTemplate()             const;
-	bool IsScriptObject()         const;
-	bool IsPrimitive()            const;
-	bool IsMathType()             const;
-	bool IsObject()               const;
-	bool IsReference()            const {return isReference;}
-	bool IsAuto()                 const {return isAuto;}
-	bool IsReadOnly()             const;
-	bool IsIntegerType()          const;
-	bool IsUnsignedType()         const;
-	bool IsFloatType()            const;
-	bool IsDoubleType()           const;
-	bool IsBooleanType()          const;
-	bool IsObjectHandle()         const {return isObjectHandle;}
-	bool IsHandleToAuto()         const {return isAuto && isObjectHandle;}
-	bool IsHandleToConst()        const;
-	bool IsArrayType()            const;
-	bool IsEnumType()             const;
-	bool IsAnyType()              const {return tokenType == ttQuestion;}
-	bool IsHandleToAsHandleType() const {return isHandleToAsHandleType;}
-	bool IsAbstractClass()        const;
-	bool IsInterface()            const;
-	bool IsFuncdef()              const;
+	bool IsTemplate()       const;
+	bool IsScriptObject()   const;
+	bool IsPrimitive()      const;
+	bool IsObject()         const;
+	bool IsReference()      const {return isReference;}
+	bool IsReadOnly()       const; 
+	bool IsIntegerType()    const;
+	bool IsUnsignedType()   const;
+	bool IsFloatType()      const;
+	bool IsDoubleType()     const;
+	bool IsBooleanType()    const;
+	bool IsObjectHandle()   const {return isObjectHandle;}
+	bool IsHandleToConst()  const;
+	bool IsArrayType()      const;
+	bool IsEnumType()       const;
+	bool IsAnyType()        const {return tokenType == ttQuestion;}
 
-	bool IsObjectConst()    const;
-
+	bool IsSamePrimitiveBaseType(const asCDataType &dt)    const;
 	bool IsEqualExceptRef(const asCDataType &)             const;
 	bool IsEqualExceptRefAndConst(const asCDataType &)     const;
 	bool IsEqualExceptConst(const asCDataType &)           const;
+	bool IsEqualExceptInterfaceType(const asCDataType &dt) const;
 	bool IsNullHandle()                                    const;
 
 	bool SupportHandles() const;
-	bool CanBeInstantiated() const;
+	bool CanBeInstanciated() const;
 	bool CanBeCopied() const;
 
 	bool operator ==(const asCDataType &) const;
@@ -122,17 +109,16 @@ public:
 
 	asCDataType        GetSubType(asUINT subtypeIndex = 0)    const;
 	eTokenType         GetTokenType()  const {return tokenType;}
-	asCTypeInfo       *GetTypeInfo() const { return typeInfo; }
+	asCObjectType     *GetObjectType() const {return objectType;}
+	asCScriptFunction *GetFuncDef()    const {return funcDef;}
 
 	int  GetSizeOnStackDWords()  const;
 	int  GetSizeInMemoryBytes()  const;
 	int  GetSizeInMemoryDWords() const;
-#ifdef WIP_16BYTE_ALIGN
-	int  GetAlignment()          const;
-#endif
 
 	void SetTokenType(eTokenType tt)         {tokenType = tt;}
-	void SetTypeInfo(asCTypeInfo *ti)       {typeInfo = ti;}
+	void SetObjectType(asCObjectType *obj)   {objectType = obj;}
+	void SetFuncDef(asCScriptFunction *func) { asASSERT(funcDef); funcDef = func; }
 
 	asCDataType &operator =(const asCDataType &);
 
@@ -143,17 +129,15 @@ protected:
 	eTokenType tokenType;
 
 	// Behaviour type
-	asCTypeInfo *typeInfo;
+	asCObjectType *objectType;
+	asCScriptFunction *funcDef;
 
 	// Top level
 	bool isReference:1;
 	bool isReadOnly:1;
 	bool isObjectHandle:1;
 	bool isConstHandle:1;
-	bool isAuto:1;
-	bool isHandleToAsHandleType:1; // Used by the compiler to know how to initialize the object
-	bool ifHandleThenConst:1; // Used when creating template instances to determine if a handle should be const or not
-	char dummy:1;
+	char dummy:4;
 };
 
 END_AS_NAMESPACE

@@ -1631,7 +1631,7 @@ public:
         IntVec bad_typeids_class;
         for( int m = 0, n = module->GetObjectTypeCount(); m < n; m++ )
         {
-            asITypeInfo* ot = module->GetObjectTypeByIndex( m );
+            asIObjectType* ot = module->GetObjectTypeByIndex( m );
             for( int i = 0, j = ot->GetPropertyCount(); i < j; i++ )
             {
                 int type = 0;
@@ -1656,7 +1656,7 @@ public:
 
             while( type & asTYPEID_TEMPLATE )
             {
-                asITypeInfo* obj = (asITypeInfo*) Engine->GetTypeInfoById( type );
+                asIObjectType* obj = (asIObjectType*) Engine->GetObjectTypeById( type );
                 if( !obj )
                     break;
                 type = obj->GetSubTypeId();
@@ -1822,12 +1822,7 @@ int Script::Bind( const char* module_name, const char* func_name, const char* de
         if( !script_func )
         {
             if( !disable_log )
-			{
-				WriteLogF( _FUNC_, " - Function<%s> in module<%s> not found.\n", decl_, module_name );
-				if (decl && decl[0])
-					WriteLogF(_FUNC_, " - Info format: <%s> <%s> .\n", decl, func_name);
-				else WriteLogF(_FUNC_, " - Info copy: <%s> <%s> .\n", decl, func_name);
-			}
+                WriteLogF( _FUNC_, " - Function<%s> in module<%s> not found.\n", decl_, module_name );
             return 0;
         }
 
@@ -2731,9 +2726,9 @@ void Script::CallbackException( asIScriptContext* ctx, void* param )
 /* Array                                                                */
 /************************************************************************/
 
-CScriptArray* Script::CreateArray( const char* type )
+ScriptArray* Script::CreateArray( const char* type )
 {
-    return CScriptArray::Create( 0, Engine->GetTypeInfoById( Engine->GetTypeIdByDecl( type ) ) );
+    return new ScriptArray( 0, Engine->GetObjectTypeById( Engine->GetTypeIdByDecl( type ) ) );
 }
 
 /************************************************************************/

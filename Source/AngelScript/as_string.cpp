@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2015 Andreas Jonsson
+   Copyright (c) 2003-2012 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied 
    warranty. In no event will the authors be held liable for any 
@@ -31,8 +31,8 @@
 #include "as_config.h"
 
 #include <stdarg.h>		// va_list, va_start(), etc
-#include <stdlib.h>		// strtod(), strtol()
-#include <string.h>		// some compilers declare memcpy() here
+#include <stdlib.h>     // strtod(), strtol()
+#include <string.h> // some compilers declare memcpy() here
 
 #if !defined(AS_NO_MEMORY_H)
 #include <memory.h>
@@ -55,26 +55,6 @@ asCString::asCString(const asCString &str)
 
 	Assign(str.AddressOf(), str.length);
 }
-
-#ifdef AS_CAN_USE_CPP11
-asCString::asCString(asCString &&str)
-{
-	if( str.length <= 11 )
-	{
-		length = str.length;
-		memcpy(local, str.local, length);
-		local[length] = 0;
-	}
-	else
-	{
-		dynamic = str.dynamic;
-		length = str.length;
-	}
-
-	str.dynamic = 0;
-	str.length = 0;
-}
-#endif // c++11
 
 asCString::asCString(const char *str, size_t len)
 {
@@ -203,37 +183,6 @@ asCString &asCString::operator =(const asCString &str)
 	return *this;
 }
 
-#ifdef AS_CAN_USE_CPP11
-asCString &asCString::operator =(asCString &&str)
-{
-	if( this != &str )
-	{
-		if( length > 11 && dynamic )
-		{
-			asDELETEARRAY(dynamic);
-		}
-
-		if ( str.length <= 11 )
-		{
-			length = str.length;
-
-			memcpy(local, str.local, length);
-			local[length] = 0;
-		}
-		else
-		{
-			dynamic = str.dynamic;
-			length = str.length;
-		}
-
-		str.dynamic = 0;
-		str.length = 0;
-	}
-
-	return *this;
-}
-#endif // c++11
-
 asCString &asCString::operator =(char ch)
 {
 	Assign(&ch, 1);
@@ -324,15 +273,15 @@ const char &asCString::operator [](size_t index) const
 	return AddressOf()[index];
 }
 
-asCString asCString::SubString(size_t in_start, size_t in_length) const
+asCString asCString::SubString(size_t start, size_t length) const
 {
-	if( in_start >= GetLength() || in_length == 0 )
+	if( start >= GetLength() || length == 0 )
 		return asCString("");
 
-	if( in_length == (size_t)(-1) ) in_length = GetLength() - in_start;
+	if( length == (size_t)(-1) ) length = GetLength() - start;
 
 	asCString tmp;
-	tmp.Assign(AddressOf() + in_start, in_length);
+	tmp.Assign(AddressOf() + start, length);
 
 	return tmp;
 }

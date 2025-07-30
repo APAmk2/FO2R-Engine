@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2016 Andreas Jonsson
+   Copyright (c) 2003-2012 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied 
    warranty. In no event will the authors be held liable for any 
@@ -63,22 +63,34 @@ asCGeneric::~asCGeneric()
 }
 
 // interface
-void *asCGeneric::GetAuxiliary() const
-{
-	return sysFunction->GetAuxiliary();
-}
-
-// interface
 asIScriptEngine *asCGeneric::GetEngine() const
 {
 	return (asIScriptEngine*)engine;
 }
+
+#ifdef AS_DEPRECATED
+// Deprecated since 2.24.0 - 2012-05-25
+// interface
+int asCGeneric::GetFunctionId() const
+{
+	return sysFunction->id;
+}
+#endif
 
 // interface
 asIScriptFunction *asCGeneric::GetFunction() const
 {
 	return sysFunction;
 }
+
+#ifdef AS_DEPRECATED
+// Deprecated since 2.24.0 - 2012-05-25
+// interface
+void *asCGeneric::GetFunctionUserData() const
+{
+	return sysFunction->userData;
+}
+#endif
 
 // interface
 void *asCGeneric::GetObject()
@@ -89,7 +101,7 @@ void *asCGeneric::GetObject()
 // interface
 int asCGeneric::GetObjectTypeId() const
 {
-	asCDataType dt = asCDataType::CreateType(sysFunction->objectType, false);
+	asCDataType dt = asCDataType::CreateObject(sysFunction->objectType, false);
 	return engine->GetTypeIdFromDataType(dt);
 }
 
@@ -107,7 +119,7 @@ asBYTE asCGeneric::GetArgByte(asUINT arg)
 
 	// Verify that the type is correct
 	asCDataType *dt = &sysFunction->parameterTypes[arg];
-	if( (dt->IsObject() || dt->IsFuncdef()) || dt->IsReference() )
+	if( dt->IsObject() || dt->IsReference() )
 		return 0;
 
 	if( dt->GetSizeInMemoryBytes() != 1 )
@@ -130,7 +142,7 @@ asWORD asCGeneric::GetArgWord(asUINT arg)
 
 	// Verify that the type is correct
 	asCDataType *dt = &sysFunction->parameterTypes[arg];
-	if( (dt->IsObject() || dt->IsFuncdef()) || dt->IsReference() )
+	if( dt->IsObject() || dt->IsReference() )
 		return 0;
 
 	if( dt->GetSizeInMemoryBytes() != 2 )
@@ -153,7 +165,7 @@ asDWORD asCGeneric::GetArgDWord(asUINT arg)
 
 	// Verify that the type is correct
 	asCDataType *dt = &sysFunction->parameterTypes[arg];
-	if( (dt->IsObject() || dt->IsFuncdef()) || dt->IsReference() )
+	if( dt->IsObject() || dt->IsReference() )
 		return 0;
 
 	if( dt->GetSizeInMemoryBytes() != 4 )
@@ -176,7 +188,7 @@ asQWORD asCGeneric::GetArgQWord(asUINT arg)
 
 	// Verify that the type is correct
 	asCDataType *dt = &sysFunction->parameterTypes[arg];
-	if( (dt->IsObject() || dt->IsFuncdef()) || dt->IsReference() )
+	if( dt->IsObject() || dt->IsReference() )
 		return 0;
 
 	if( dt->GetSizeInMemoryBytes() != 8 )
@@ -199,7 +211,7 @@ float asCGeneric::GetArgFloat(asUINT arg)
 
 	// Verify that the type is correct
 	asCDataType *dt = &sysFunction->parameterTypes[arg];
-	if( (dt->IsObject() || dt->IsFuncdef()) || dt->IsReference() )
+	if( dt->IsObject() || dt->IsReference() )
 		return 0;
 
 	if( dt->GetSizeInMemoryBytes() != 4 )
@@ -222,7 +234,7 @@ double asCGeneric::GetArgDouble(asUINT arg)
 
 	// Verify that the type is correct
 	asCDataType *dt = &sysFunction->parameterTypes[arg];
-	if( (dt->IsObject() || dt->IsFuncdef()) || dt->IsReference() )
+	if( dt->IsObject() || dt->IsReference() )
 		return 0;
 
 	if( dt->GetSizeInMemoryBytes() != 8 )
@@ -265,7 +277,7 @@ void *asCGeneric::GetArgObject(asUINT arg)
 
 	// Verify that the type is correct
 	asCDataType *dt = &sysFunction->parameterTypes[arg];
-	if( !dt->IsObject() && !dt->IsFuncdef() )
+	if( !dt->IsObject() )
 		return 0;
 
 	// Determine the position of the argument
@@ -299,16 +311,10 @@ void *asCGeneric::GetAddressOfArg(asUINT arg)
 }
 
 // interface
-int asCGeneric::GetArgTypeId(asUINT arg, asDWORD *flags) const
+int asCGeneric::GetArgTypeId(asUINT arg) const
 {
 	if( arg >= (unsigned)sysFunction->parameterTypes.GetLength() )
 		return 0;
-
-	if( flags )
-	{
-		*flags = sysFunction->inOutFlags[arg];
-		*flags |= sysFunction->parameterTypes[arg].IsReadOnly() ? asTM_CONST : 0;
-	}
 
 	asCDataType *dt = &sysFunction->parameterTypes[arg];
 	if( dt->GetTokenType() != ttQuestion )
@@ -331,14 +337,14 @@ int asCGeneric::GetArgTypeId(asUINT arg, asDWORD *flags) const
 int asCGeneric::SetReturnByte(asBYTE val)
 {
 	// Verify the type of the return value
-	if( (sysFunction->returnType.IsObject() || sysFunction->returnType.IsFuncdef()) || sysFunction->returnType.IsReference() )
+	if( sysFunction->returnType.IsObject() || sysFunction->returnType.IsReference() )
 		return asINVALID_TYPE;
 
 	if( sysFunction->returnType.GetSizeInMemoryBytes() != 1 )
 		return asINVALID_TYPE;
 
-	// Store the value
-	*(asBYTE*)&returnVal = val;
+    // Store the value
+    *(asBYTE*)&returnVal = val;
 
 	return 0;
 }
@@ -347,14 +353,14 @@ int asCGeneric::SetReturnByte(asBYTE val)
 int asCGeneric::SetReturnWord(asWORD val)
 {
 	// Verify the type of the return value
-	if( (sysFunction->returnType.IsObject() || sysFunction->returnType.IsFuncdef()) || sysFunction->returnType.IsReference() )
+	if( sysFunction->returnType.IsObject() || sysFunction->returnType.IsReference() )
 		return asINVALID_TYPE;
 
 	if( sysFunction->returnType.GetSizeInMemoryBytes() != 2 )
 		return asINVALID_TYPE;
 
-	// Store the value
-	*(asWORD*)&returnVal = val;
+    // Store the value
+    *(asWORD*)&returnVal = val;
 
 	return 0;
 }
@@ -363,14 +369,14 @@ int asCGeneric::SetReturnWord(asWORD val)
 int asCGeneric::SetReturnDWord(asDWORD val)
 {
 	// Verify the type of the return value
-	if( (sysFunction->returnType.IsObject() || sysFunction->returnType.IsFuncdef()) || sysFunction->returnType.IsReference() )
+	if( sysFunction->returnType.IsObject() || sysFunction->returnType.IsReference() )
 		return asINVALID_TYPE;
 
 	if( sysFunction->returnType.GetSizeInMemoryBytes() != 4 )
 		return asINVALID_TYPE;
 
-	// Store the value
-	*(asDWORD*)&returnVal = val;
+    // Store the value
+    *(asDWORD*)&returnVal = val;
 
 	return 0;
 }
@@ -379,7 +385,7 @@ int asCGeneric::SetReturnDWord(asDWORD val)
 int asCGeneric::SetReturnQWord(asQWORD val)
 {
 	// Verify the type of the return value
-	if( (sysFunction->returnType.IsObject() || sysFunction->returnType.IsFuncdef()) || sysFunction->returnType.IsReference() )
+	if( sysFunction->returnType.IsObject() || sysFunction->returnType.IsReference() )
 		return asINVALID_TYPE;
 
 	if( sysFunction->returnType.GetSizeOnStackDWords() != 2 )
@@ -395,7 +401,7 @@ int asCGeneric::SetReturnQWord(asQWORD val)
 int asCGeneric::SetReturnFloat(float val)
 {
 	// Verify the type of the return value
-	if( (sysFunction->returnType.IsObject() || sysFunction->returnType.IsFuncdef()) || sysFunction->returnType.IsReference() )
+	if( sysFunction->returnType.IsObject() || sysFunction->returnType.IsReference() )
 		return asINVALID_TYPE;
 
 	if( sysFunction->returnType.GetSizeOnStackDWords() != 1 )
@@ -411,7 +417,7 @@ int asCGeneric::SetReturnFloat(float val)
 int asCGeneric::SetReturnDouble(double val)
 {
 	// Verify the type of the return value
-	if( (sysFunction->returnType.IsObject() || sysFunction->returnType.IsFuncdef()) || sysFunction->returnType.IsReference() )
+	if( sysFunction->returnType.IsObject() || sysFunction->returnType.IsReference() )
 		return asINVALID_TYPE;
 
 	if( sysFunction->returnType.GetSizeOnStackDWords() != 2 )
@@ -447,7 +453,7 @@ int asCGeneric::SetReturnAddress(void *val)
 int asCGeneric::SetReturnObject(void *obj)
 {
 	asCDataType *dt = &sysFunction->returnType;
-	if( !dt->IsObject() && !dt->IsFuncdef() )
+	if( !dt->IsObject() )
 		return asINVALID_TYPE;
 
 	if( dt->IsReference() )
@@ -459,17 +465,9 @@ int asCGeneric::SetReturnObject(void *obj)
 	if( dt->IsObjectHandle() )
 	{
 		// Increase the reference counter
-		if (dt->IsFuncdef())
-		{
-			if (obj)
-				reinterpret_cast<asIScriptFunction*>(obj)->AddRef();
-		}
-		else
-		{
-			asSTypeBehaviour *beh = &CastToObjectType(dt->GetTypeInfo())->beh;
-			if (obj && beh && beh->addref)
-				engine->CallObjectMethod(obj, beh->addref);
-		}
+		asSTypeBehaviour *beh = &dt->GetObjectType()->beh;
+		if( obj && beh->addref )
+			engine->CallObjectMethod(obj, beh->addref);
 	}
 	else
 	{
@@ -477,7 +475,7 @@ int asCGeneric::SetReturnObject(void *obj)
 		// Here we should just initialize that memory by calling the copy constructor
 		// or the default constructor followed by the assignment operator
 		void *mem = (void*)*(asPWORD*)&stackPointer[-AS_PTR_SIZE];
-		engine->ConstructScriptObjectCopy(mem, obj, CastToObjectType(dt->GetTypeInfo()));
+		engine->ConstructScriptObjectCopy(mem, obj, dt->GetObjectType());
 		return 0;
 	}
 
@@ -491,7 +489,7 @@ void *asCGeneric::GetReturnPointer()
 {
 	asCDataType &dt = sysFunction->returnType;
 
-	if( (dt.IsObject() ||dt.IsFuncdef()) && !dt.IsReference() )
+	if( dt.IsObject() && !dt.IsReference() )
 	{
 		// This function doesn't support returning on the stack but the use of 
 		// the function doesn't require it so we don't need to implement it here.
@@ -508,7 +506,7 @@ void *asCGeneric::GetAddressOfReturnLocation()
 {
 	asCDataType &dt = sysFunction->returnType;
 
-	if( (dt.IsObject() || dt.IsFuncdef()) && !dt.IsReference() )
+	if( dt.IsObject() && !dt.IsReference() )
 	{
 		if( sysFunction->DoesReturnOnStack() )
 		{
@@ -526,9 +524,9 @@ void *asCGeneric::GetAddressOfReturnLocation()
 }
 
 // interface
-int asCGeneric::GetReturnTypeId(asDWORD *flags) const
+int asCGeneric::GetReturnTypeId() const
 {
-	return sysFunction->GetReturnTypeId(flags);
+	return sysFunction->GetReturnTypeId();
 }
 
 END_AS_NAMESPACE

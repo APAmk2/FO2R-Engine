@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2016 Andreas Jonsson
+   Copyright (c) 2003-2012 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied 
    warranty. In no event will the authors be held liable for any 
@@ -40,7 +40,6 @@
 #include "as_config.h"
 #include "as_configgroup.h"
 #include "as_scriptengine.h"
-#include "as_texts.h"
 
 BEGIN_AS_NAMESPACE
 
@@ -66,11 +65,11 @@ int asCConfigGroup::Release()
 	return refCount;
 }
 
-asCTypeInfo *asCConfigGroup::FindType(const char *obj)
+asCObjectType *asCConfigGroup::FindType(const char *obj)
 {
-	for( asUINT n = 0; n < types.GetLength(); n++ )
-		if( types[n]->name == obj )
-			return types[n];
+	for( asUINT n = 0; n < objTypes.GetLength(); n++ )
+		if( objTypes[n]->name == obj )
+			return objTypes[n];
 
 	return 0;
 }
@@ -88,29 +87,10 @@ void asCConfigGroup::RefConfigGroup(asCConfigGroup *group)
 	group->AddRef();
 }
 
-void asCConfigGroup::AddReferencesForFunc(asCScriptEngine *engine, asCScriptFunction *func)
-{
-	AddReferencesForType(engine, func->returnType.GetTypeInfo());
-	for( asUINT n = 0; n < func->parameterTypes.GetLength(); n++ )
-		AddReferencesForType(engine, func->parameterTypes[n].GetTypeInfo());
-}
-
-void asCConfigGroup::AddReferencesForType(asCScriptEngine *engine, asCTypeInfo *type)
-{
-	if( type == 0 ) return;
-
-	// Keep reference to other groups
-	RefConfigGroup(engine->FindConfigGroupForTypeInfo(type));
-
-	// Keep track of which generated template instances the config group uses
-	if( type->flags & asOBJ_TEMPLATE && engine->generatedTemplateTypes.Exists(CastToObjectType(type)) && !generatedTemplateInstances.Exists(CastToObjectType(type)) )
-		generatedTemplateInstances.PushLast(CastToObjectType(type));
-}
-
 bool asCConfigGroup::HasLiveObjects()
 {
-	for( asUINT n = 0; n < types.GetLength(); n++ )
-		if( types[n]->externalRefCount.get() != 0 )
+	for( asUINT n = 0; n < objTypes.GetLength(); n++ )
+		if( objTypes[n]->GetRefCount() != 0 )
 			return true;
 
 	return false;
@@ -139,68 +119,55 @@ void asCConfigGroup::RemoveConfiguration(asCScriptEngine *engine, bool notUsed)
 	// Remove global functions
 	for( n = 0; n < scriptFunctions.GetLength(); n++ )
 	{
-		int index = engine->registeredGlobalFuncs.GetIndex(scriptFunctions[n]);
-		if( index >= 0 )
-			engine->registeredGlobalFuncs.Erase(index);
-		scriptFunctions[n]->ReleaseInternal();
+		scriptFunctions[n]->Release();
+		engine->registeredGlobalFuncs.RemoveValue(scriptFunctions[n]);
 		if( engine->stringFactory == scriptFunctions[n] )
 			engine->stringFactory = 0;
 	}
 	scriptFunctions.SetLength(0);
 
 	// Remove behaviours and members of object types
-	for( n = 0; n < types.GetLength(); n++ )
+	for( n = 0; n < objTypes.GetLength(); n++ )
 	{
-		asCObjectType *obj = CastToObjectType(types[n]);
-		if( obj )
-			obj->ReleaseAllFunctions();
+		asCObjectType *obj = objTypes[n];
+
+		obj->ReleaseAllFunctions();
 	}
+
+	// Remove function definitions
+	for( n = 0; n < funcDefs.GetLength(); n++ )
+	{
+		engine->registeredFuncDefs.RemoveValue(funcDefs[n]);
+		funcDefs[n]->Release();
+	}
+	funcDefs.SetLength(0);
 
 	// Remove object types (skip this if it is possible other groups are still using the types)
 	if( !notUsed )
 	{
-		for( n = asUINT(types.GetLength()); n-- > 0; )
+		for( n = 0; n < objTypes.GetLength(); n++ )
 		{
-			asCTypeInfo *t = types[n];
-			asSMapNode<asSNameSpaceNamePair, asCTypeInfo*> *cursor;
-			if( engine->allRegisteredTypes.MoveTo(&cursor, asSNameSpaceNamePair(t->nameSpace, t->name)) &&
-				cursor->value == t )
+			asCObjectType *t = objTypes[n];
+			int idx = engine->objectTypes.IndexOf(t);
+			if( idx >= 0 )
 			{
-				engine->allRegisteredTypes.Erase(cursor);
+#ifdef AS_DEBUG
+				ValidateNoUsage(engine, t);
+#endif
 
-				if( engine->defaultArrayObjectType == t )
-					engine->defaultArrayObjectType = 0;
+				engine->objectTypes.RemoveIndex(idx);
 
 				if( t->flags & asOBJ_TYPEDEF )
-					engine->registeredTypeDefs.RemoveValue(CastToTypedefType(t));
+					engine->registeredTypeDefs.RemoveValue(t);
 				else if( t->flags & asOBJ_ENUM )
-					engine->registeredEnums.RemoveValue(CastToEnumType(t));
-				else if (t->flags & asOBJ_TEMPLATE)
-					engine->registeredTemplateTypes.RemoveValue(CastToObjectType(t));
-				else if (t->flags & asOBJ_FUNCDEF)
-				{
-					engine->registeredFuncDefs.RemoveValue(CastToFuncdefType(t));
-					engine->RemoveFuncdef(CastToFuncdefType(t));
-				}
+					engine->registeredEnums.RemoveValue(t);
 				else
-					engine->registeredObjTypes.RemoveValue(CastToObjectType(t));
+					engine->registeredObjTypes.RemoveValue(t);
 
-				t->DestroyInternal();
-				t->ReleaseInternal();
-			}
-			else
-			{
-				int idx = engine->templateInstanceTypes.IndexOf(CastToObjectType(t));
-				if( idx >= 0 )
-				{
-					engine->templateInstanceTypes.RemoveIndexUnordered(idx);
-					asCObjectType *ot = CastToObjectType(t);
-					ot->DestroyInternal();
-					ot->ReleaseInternal();
-				}
+				asDELETE(t, asCObjectType);
 			}
 		}
-		types.SetLength(0);
+		objTypes.SetLength(0);
 	}
 
 	// Release other config groups
@@ -208,5 +175,35 @@ void asCConfigGroup::RemoveConfiguration(asCScriptEngine *engine, bool notUsed)
 		referencedConfigGroups[n]->refCount--;
 	referencedConfigGroups.SetLength(0);
 }
+
+#ifdef AS_DEBUG
+void asCConfigGroup::ValidateNoUsage(asCScriptEngine *engine, asCObjectType *type)
+{
+	for( asUINT n = 0; n < engine->scriptFunctions.GetLength(); n++ )
+	{
+		asCScriptFunction *func = engine->scriptFunctions[n];
+		if( func == 0 ) continue;
+
+		// Ignore factory, list factory, and members
+		if( func->name == "_beh_2_" || func->name == "_beh_3_" || func->objectType == type )
+			continue;
+
+		asASSERT( func->returnType.GetObjectType() != type );
+
+		for( asUINT p = 0; p < func->parameterTypes.GetLength(); p++ )
+		{
+			asASSERT(func->parameterTypes[p].GetObjectType() != type);
+		}
+	}
+
+	// TODO: Check also usage of the type in global variables 
+
+	// TODO: Check also usage of the type in local variables in script functions
+
+	// TODO: Check also usage of the type as members of classes
+
+	// TODO: Check also usage of the type as sub types in other types
+}
+#endif
 
 END_AS_NAMESPACE

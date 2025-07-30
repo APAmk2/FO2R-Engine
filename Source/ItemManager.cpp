@@ -159,14 +159,14 @@ bool ItemManager::LoadProtos( ProtoItemVec& protos, const char* fname )
         proto_item.Clear();
         bool             deprecated = fopro.GetStr( "Proto", "Pid", "", svalue ); // Detect deprecated by 'Pid', instead new 'ProtoId'
         asIScriptEngine* engine = Script::GetEngine();
-        asITypeInfo*   ot = engine->GetTypeInfoById( engine->GetTypeIdByDecl( "ProtoItem" ) );
+        asIObjectType*   ot = engine->GetObjectTypeById( engine->GetTypeIdByDecl( "ProtoItem" ) );
 
         for( int i = 0, j = ot->GetPropertyCount(); i < j; i++ )
         {
             const char* name;
             int         type_id;
             int         offset;
-            ot->GetProperty( i, &name, &type_id, NULL, NULL, &offset );
+            ot->GetProperty( i, &name, &type_id, NULL, &offset );
 
             if( !fopro.GetStr( "Proto", name, "", svalue ) )
             {

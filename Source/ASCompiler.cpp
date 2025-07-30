@@ -435,7 +435,7 @@ int main( int argc, char* argv[] )
         vector< int > bad_typeids_class;
         for( int m = 0, n = module->GetObjectTypeCount(); m < n; m++ )
         {
-            asITypeInfo* ot = module->GetObjectTypeByIndex( m );
+            asIObjectType* ot = module->GetObjectTypeByIndex( m );
             for( int i = 0, j = ot->GetPropertyCount(); i < j; i++ )
             {
                 int type = 0;
@@ -461,7 +461,7 @@ int main( int argc, char* argv[] )
 
             while( type & asTYPEID_TEMPLATE )
             {
-                asITypeInfo* obj = (asITypeInfo*) Engine->GetTypeInfoById( type );
+                asIObjectType* obj = (asIObjectType*) Engine->GetObjectTypeById( type );
                 if( !obj )
                     break;
                 type = obj->GetSubTypeId();
