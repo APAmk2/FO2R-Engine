@@ -12,8 +12,7 @@ public:
     #ifdef FONLINE_DLL
     static ScriptString& Create( const char* str = NULL )
     {
-        static int    typeId = ASEngine->GetTypeIdByDecl( "string" );
-        ScriptString* scriptStr = (ScriptString*) ASEngine->CreateScriptObject( typeId );
+        ScriptString* scriptStr = (ScriptString*) ASEngine->CreateScriptObject( ASEngine->GetTypeInfoByDecl( "string" ) );
         if( str )
             scriptStr->assign( str );
         return *scriptStr;
@@ -35,14 +34,7 @@ public:
 
     ScriptString& operator=( const ScriptString& other )
     {
-        // Workaround for pointer to reference coercion bug in AS.
-        const ScriptString* ptr = &other;
-        if( ptr == NULL ) {
-            asIScriptContext* ctx = asGetActiveContext();
-            ctx->SetException( "Null pointer string assign" );
-        } else {
-            assign( other.c_str(), other.length() );
-        }
+        assign( other.c_str(), other.length() );
         return *this;
     }
     ScriptString& operator+=( const ScriptString& other )
@@ -86,11 +78,11 @@ public:
     const std::string& c_std_str() const { return buffer; }
     int                rcount()    const { return refCount; }
 
-    char rawGet( uint index )
+    virtual char rawGet( uint index )
     {
         return index < buffer.length() ? buffer[ index ] : 0;
     }
-    void rawSet( uint index, char value )
+    virtual void rawSet( uint index, char value )
     {
         if( index < buffer.length() )
             buffer[ index ] = value;

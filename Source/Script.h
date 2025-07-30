@@ -18,7 +18,7 @@ typedef std::vector< asIScriptModule* > ScriptModuleVec;
 struct EngineData
 {
     ScriptModuleVec                      Modules;
-    Preprocessor::PragmaCallback*        PragmaCB;
+    Preprocessor::Pragma::Callback*        PragmaCB;
     string                               DllTarget;
     map< string, pair< string, void* > > LoadedDlls;
 };
@@ -32,7 +32,7 @@ struct ReservedScriptFunction
 
 namespace Script
 {
-    bool Init( bool with_log, Preprocessor::PragmaCallback* pragma_callback, const char* dll_target );
+    bool Init( bool with_log, Preprocessor::Pragma::Callback* pragma_callback, const char* dll_target );
     void Finish();
     bool InitThread();
     void FinishThread();
@@ -65,7 +65,7 @@ namespace Script
 
     asIScriptEngine* GetEngine();
     void             SetEngine( asIScriptEngine* engine );
-    asIScriptEngine* CreateEngine( Preprocessor::PragmaCallback* pragma_callback, const char* dll_target );
+    asIScriptEngine* CreateEngine( Preprocessor::Pragma::Callback* pragma_callback, const char* dll_target );
     void             FinishEngine( asIScriptEngine*& engine );
 
     asIScriptContext* CreateContext();
@@ -140,10 +140,10 @@ namespace Script
     void CallbackException( asIScriptContext* ctx, void* param );
 
     // Arrays stuff
-    ScriptArray* CreateArray( const char* type );
+    CScriptArray* CreateArray( const char* type );
 
     template< typename Type >
-    void AppendVectorToArray( vector< Type >& vec, ScriptArray* arr )
+    void AppendVectorToArray( vector< Type >& vec, CScriptArray* arr )
     {
         if( !vec.empty() && arr )
         {
@@ -157,7 +157,7 @@ namespace Script
         }
     }
     template< typename Type >
-    void AppendVectorToArrayRef( vector< Type >& vec, ScriptArray* arr )
+    void AppendVectorToArrayRef( vector< Type >& vec, CScriptArray* arr )
     {
         if( !vec.empty() && arr )
         {
@@ -172,7 +172,7 @@ namespace Script
         }
     }
     template< typename Type >
-    void AssignScriptArrayInVector( vector< Type >& vec, ScriptArray* arr )
+    void AssignScriptArrayInVector( vector< Type >& vec, CScriptArray* arr )
     {
         if( arr )
         {

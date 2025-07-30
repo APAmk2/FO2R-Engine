@@ -198,8 +198,9 @@ uint   RunTimeoutMessage = 300000;     // 5 minutes
 Thread RunTimeoutThread;
 void RunTimeout( void* );
 
+Preprocessor* ScriptPreprocessor;
 
-bool Script::Init( bool with_log, Preprocessor::PragmaCallback* pragma_callback, const char* dll_target )
+bool Script::Init( bool with_log, Preprocessor::Pragma::Callback* pragma_callback, const char* dll_target )
 {
     if( with_log && !StartLog() )
     {
@@ -222,6 +223,8 @@ bool Script::Init( bool with_log, Preprocessor::PragmaCallback* pragma_callback,
 
     if( !InitThread() )
         return false;
+
+	ScriptPreprocessor = new Preprocessor();
 
     // Game options callback
     struct GameOptScript
@@ -396,9 +399,10 @@ void Script::Finish()
     RunTimeoutThread.Wait();
 
     BindedFunctions.clear();
-    Preprocessor::SetPragmaCallback( NULL );
-    Preprocessor::UndefAll();
+    ScriptPreprocessor->SetPragmaCallback( NULL );
+    ScriptPreprocessor->UndefAll();
     UnloadScripts();
+	delete ScriptPreprocessor;
 
     FinishEngine( Engine );     // Finish default engine
 
@@ -931,7 +935,7 @@ void Script::SetEngine( asIScriptEngine* engine )
     Engine = engine;
 }
 
-asIScriptEngine* Script::CreateEngine( Preprocessor::PragmaCallback* pragma_callback, const char* dll_target )
+asIScriptEngine* Script::CreateEngine( Preprocessor::Pragma::Callback* pragma_callback, const char* dll_target )
 {
     asIScriptEngine* engine = asCreateScriptEngine( ANGELSCRIPT_VERSION );
     if( !engine )
@@ -1377,15 +1381,15 @@ void Script::SetScriptsPath( int path_type )
 
 void Script::Define( const char* def )
 {
-    Preprocessor::Define( def );
+	ScriptPreprocessor->Define(def);
 }
 
 void Script::Undef( const char* def )
 {
     if( def )
-        Preprocessor::Undef( def );
+        ScriptPreprocessor->Undef( def );
     else
-        Preprocessor::UndefAll();
+        ScriptPreprocessor->UndefAll();
 }
 
 void Script::CallPragmas( const StrVec& pragmas )
@@ -1393,11 +1397,11 @@ void Script::CallPragmas( const StrVec& pragmas )
     EngineData* edata = (EngineData*) Engine->GetUserData();
 
     // Set current pragmas
-    Preprocessor::SetPragmaCallback( edata->PragmaCB );
+    ScriptPreprocessor->SetPragmaCallback( edata->PragmaCB );
 
     // Call pragmas
     for( uint i = 0, j = (uint) pragmas.size() / 2; i < j; i++ )
-        Preprocessor::CallPragma( pragmas[ i * 2 ], pragmas[ i * 2 + 1 ] );
+        ScriptPreprocessor->CallPragma( pragmas[i * 2], pragmas[i * 2 + 1] );
 }
 
 bool Script::LoadScript( const char* module_name, const char* source, bool skip_binary, const char* file_prefix /* = NULL */ )
@@ -1440,7 +1444,7 @@ bool Script::LoadScript( const char* module_name, const char* source, bool skip_
     FileManager::FormatPath( fname_script );
 
     // Set current pragmas
-    Preprocessor::SetPragmaCallback( edata->PragmaCB );
+    ScriptPreprocessor->SetPragmaCallback( edata->PragmaCB );
 
     // Try load precompiled script
     FileManager file_bin;
@@ -1513,14 +1517,14 @@ bool Script::LoadScript( const char* module_name, const char* source, bool skip_
                 if( module )
                 {
                     for( uint i = 0, j = (uint) pragmas.size() / 2; i < j; i++ )
-                        Preprocessor::CallPragma( pragmas[ i * 2 ], pragmas[ i * 2 + 1 ] );
+                        ScriptPreprocessor->CallPragma( pragmas[i * 2], pragmas[i * 2 + 1] );
 
                     CBytecodeStream binary;
                     binary.Write( file_bin.GetCurBuf(), file_bin.GetFsize() - file_bin.GetCurPos() );
 
                     if( module->LoadByteCode( &binary ) >= 0 )
                     {
-                        Preprocessor::GetParsedPragmas() = pragmas;
+                        ScriptPreprocessor->GetParsedPragmas() = pragmas;
                         modules.push_back( module );
                         return true;
                     }
@@ -1567,7 +1571,7 @@ public:
     Preprocessor::StringOutStream result, errors;
     MemoryFileLoader              loader( source );
     int                           errors_count;
-    errors_count = Preprocessor::Preprocess( FileManager::GetFullPath( fname_real, ScriptsPath ), result, &errors, &loader );
+    errors_count = ScriptPreprocessor->Preprocess( FileManager::GetFullPath( fname_real, ScriptsPath ), result, &errors, &loader );
 
     if( errors.String != "" )
     {
@@ -1627,7 +1631,7 @@ public:
         IntVec bad_typeids_class;
         for( int m = 0, n = module->GetObjectTypeCount(); m < n; m++ )
         {
-            asIObjectType* ot = module->GetObjectTypeByIndex( m );
+            asITypeInfo* ot = module->GetObjectTypeByIndex( m );
             for( int i = 0, j = ot->GetPropertyCount(); i < j; i++ )
             {
                 int type = 0;
@@ -1652,7 +1656,7 @@ public:
 
             while( type & asTYPEID_TEMPLATE )
             {
-                asIObjectType* obj = (asIObjectType*) Engine->GetObjectTypeById( type );
+                asITypeInfo* obj = (asITypeInfo*) Engine->GetTypeInfoById( type );
                 if( !obj )
                     break;
                 type = obj->GetSubTypeId();
@@ -1699,8 +1703,8 @@ public:
         if( module->SaveByteCode( &binary ) >= 0 )
         {
             std::vector< asBYTE >& data = binary.GetBuf();
-            const StrVec&          dependencies = Preprocessor::GetFileDependencies();
-            const StrVec&          pragmas = Preprocessor::GetParsedPragmas();
+            const StrVec&          dependencies = ScriptPreprocessor->GetFileDependencies();
+            const StrVec&          pragmas = ScriptPreprocessor->GetParsedPragmas();
 
             file_bin.SetBEUInt( version );
             file_bin.SetBEUInt( (uint) dependencies.size() );
@@ -1818,7 +1822,12 @@ int Script::Bind( const char* module_name, const char* func_name, const char* de
         if( !script_func )
         {
             if( !disable_log )
-                WriteLogF( _FUNC_, " - Function<%s> in module<%s> not found.\n", decl_, module_name );
+			{
+				WriteLogF( _FUNC_, " - Function<%s> in module<%s> not found.\n", decl_, module_name );
+				if (decl && decl[0])
+					WriteLogF(_FUNC_, " - Info format: <%s> <%s> .\n", decl, func_name);
+				else WriteLogF(_FUNC_, " - Info copy: <%s> <%s> .\n", decl, func_name);
+			}
             return 0;
         }
 
@@ -2722,9 +2731,9 @@ void Script::CallbackException( asIScriptContext* ctx, void* param )
 /* Array                                                                */
 /************************************************************************/
 
-ScriptArray* Script::CreateArray( const char* type )
+CScriptArray* Script::CreateArray( const char* type )
 {
-    return new ScriptArray( 0, Engine->GetObjectTypeById( Engine->GetTypeIdByDecl( type ) ) );
+    return CScriptArray::Create( 0, Engine->GetTypeInfoById( Engine->GetTypeIdByDecl( type ) ) );
 }
 
 /************************************************************************/
